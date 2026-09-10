@@ -157,32 +157,32 @@
 <script>
 const data = {
   who: [
-    { id:'family', zh:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
-    { id:'kids', zh:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
-    { id:'rabbit', zh:'玉兔', en:'a cute white jade rabbit', img:'img/who-rabbit.jpg' },
-    { id:'change', zh:'嫦娥姐姐', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
-    { id:'cat', zh:'小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
-    { id:'me', zh:'我自己', en:'a friendly student character', img:'img/who-me.jpg' }
+    { id:'family', zh:'一家人 👨‍👩‍👧‍👦', en:'a happy family together', img:'img/who-family.jpg' },
+    { id:'kids', zh:'小朋友 👧👦', en:'cheerful children', img:'img/who-kids.jpg' },
+    { id:'rabbit', zh:'🐇 白兔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
+    { id:'fairy', zh:'👸 仙女姐姐', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
+    { id:'cat', zh:'🐱 小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
+    { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' }
   ],
   act: [
-    { id:'moon', zh:'賞月', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
-    { id:'lantern', zh:'提燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
-    { id:'cake', zh:'食月餅', en:'sharing mooncakes on a picnic table', img:'img/act-cake.jpg' },
-    { id:'sky', zh:'放天燈', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
-    { id:'garden', zh:'花園賞桂', en:'standing in an osmanthus garden under moonlight', img:'img/act-garden.jpg' },
-    { id:'boat', zh:'湖邊睇月', en:'sitting by a calm lake reflecting the moon', img:'img/act-boat.jpg' }
+    { id:'moon', zh:'🌝 望住月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
+    { id:'lantern', zh:'🏮 拎住燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
+    { id:'cake', zh:'🥮 食月餅', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
+    { id:'sky', zh:'🎈 放燈籠上天', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
+    { id:'garden', zh:'🌸 花園行嚇', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
+    { id:'boat', zh:'🌊 湖邊望月', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' }
   ],
   style: [
-    { id:'cartoon', zh:'可愛卡通', en:'simple cute cartoon illustration, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
-    { id:'picturebook', zh:'圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
-    { id:'paper', zh:'剪紙燈籠', en:'Chinese paper-cut and lantern festival craft look, flat shapes', img:'img/style-paper.jpg' },
-    { id:'night', zh:'溫柔夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
+    { id:'cartoon', zh:'😊 可愛卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
+    { id:'picturebook', zh:'🎨 圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
+    { id:'paper', zh:'✂️ 剪紙公仔', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
+    { id:'night', zh:'🌙 夜晚天空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
   ],
   color: [
-    { id:'gold', zh:'金黃月亮', en:'golden full moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
-    { id:'red', zh:'紅燈籠', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
-    { id:'purple', zh:'粉紫夜空', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
-    { id:'osmanthus', zh:'桂花黃', en:'osmanthus yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
+    { id:'gold', zh:'🌝 金黃色', en:'golden yellow, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
+    { id:'red', zh:'🏮 紅色', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
+    { id:'purple', zh:'🌌 紫色', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
+    { id:'osmanthus', zh:'🌼 黃色', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
   ]
 };
 
@@ -346,12 +346,6 @@ function renderAll() {
   }
 }
 
-function pick(key, id) {
-  sel[key] = (key==='color'?data.color:data[key]==='who'?data.who:data[key]==='act'?data.act:data.style).find(x=>x.id===id);
-  playChime();
-  renderAll();
-}
-
 function go(d) {
   const next = step + d;
   if (next < 1 || next > total) return;
@@ -462,12 +456,12 @@ function toggleBigMode() {
   document.getElementById('bigModeBtn').classList.toggle('text-orange-700', bigMode);
 }
 
-// Hook pick into auto-advance
-const _pick = pick;
-// Auto-advance after 600ms
-function pick(key, id) {
-  _pick(key, id);
+// Auto-advance after picking
+function doPick(key, id) {
+  sel[key] = (key==='color'?data.color:data[key]==='who'?data.who:data[key]==='act'?data.act:data.style).find(x=>x.id===id);
+  playChime();
   generated = false;
+  renderAll();
   if (step < 4) {
     clearTimeout(window._advTimer);
     window._advTimer = setTimeout(() => {
@@ -477,6 +471,7 @@ function pick(key, id) {
     }, 600);
   }
 }
+function pick(key, id) { doPick(key, id); }
 
 renderAll();
 </script>
