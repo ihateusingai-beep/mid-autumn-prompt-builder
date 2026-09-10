@@ -45,12 +45,25 @@
       transition: background .15s, transform .1s;
     }
     .speak-btn:hover { background: #fed7aa; transform: scale(1.1); }
-    .speak-btn.speaking { color: #ea580c; animation: pulse 0.8s infinite; }
+    .speak-btn.speaking { animation: pulse 0.8s infinite; }
     @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
     .big-mode .card { min-height: 148px; }
     .big-mode .card-text { font-size: 1.5rem !important; }
     .big-mode h2 { font-size: 2.2rem !important; }
     .big-mode .speak-btn { width: 44px; height: 44px; font-size: 18px; }
+    /* Selected indicator strip at top of each step panel */
+    .step-header { position: relative; }
+    .step-picked-strip {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .step-picked-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fff7ed; border: 2px solid #fde68a; border-radius: 999px;
+      padding: 3px 10px; font-size: 0.8rem; font-weight: 700; color: #92400e;
+    }
+    .step-picked-chip img {
+      width: 22px; height: 22px; object-fit: cover; border-radius: 50%;
+    }
   </style>
 </head>
 <body class="bg-amber-50 text-stone-800 min-h-screen">
@@ -79,40 +92,54 @@
     </div>
 
     <!-- Step 1 -->
-    <section id="step-1" class="step-panel active">
-      <h2 class="text-3xl font-extrabold mb-2">👤 邊個係主角？</h2>
-      <p class="text-lg text-stone-600 mb-5">撳一下就揀到。</p>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="who-grid"></div>
+    <section id="step-1" class="step-panel active" role="region" aria-label="步驟 1：選擇主角">
+      <div class="step-header">
+        <h2 class="text-3xl font-extrabold mb-2">👤 邊個係主角？</h2>
+        <p class="text-lg text-stone-600 mb-3">撳一下就揀到。</p>
+        <div class="step-picked-strip" id="picked-strip-1" aria-label="已選擇的主角"></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3" id="who-grid"></div>
     </section>
 
     <!-- Step 2 -->
-    <section id="step-2" class="step-panel">
-      <h2 class="text-3xl font-extrabold mb-2">🎯 佢哋做緊咩？</h2>
-      <p class="text-lg text-stone-600 mb-5">揀一件最開心嘅事。</p>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="act-grid"></div>
+    <section id="step-2" class="step-panel" role="region" aria-label="步驟 2：選擇活動">
+      <div class="step-header">
+        <h2 class="text-3xl font-extrabold mb-2">🎯 佢哋做緊咩？</h2>
+        <p class="text-lg text-stone-600 mb-3">揀一件最開心嘅事。</p>
+        <div class="step-picked-strip" id="picked-strip-2" aria-label="已選擇的活動"></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3" id="act-grid"></div>
     </section>
 
     <!-- Step 3 -->
-    <section id="step-3" class="step-panel">
-      <h2 class="text-3xl font-extrabold mb-2">🎨 畫面係咩感覺？</h2>
-      <p class="text-lg text-stone-600 mb-5">揀一種畫法，愈簡單愈好。</p>
-      <div class="grid grid-cols-2 gap-3" id="style-grid"></div>
+    <section id="step-3" class="step-panel" role="region" aria-label="步驟 3：選擇畫風">
+      <div class="step-header">
+        <h2 class="text-3xl font-extrabold mb-2">🎨 揀畫法</h2>
+        <p class="text-lg text-stone-600 mb-3">揀一種，愈簡單愈好。</p>
+        <div class="step-picked-strip" id="picked-strip-3" aria-label="已選擇的畫風"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mt-3" id="style-grid"></div>
     </section>
 
     <!-- Step 4 -->
-    <section id="step-4" class="step-panel">
-      <h2 class="text-3xl font-extrabold mb-2">🌙 夜空同顏色</h2>
-      <p class="text-lg text-stone-600 mb-5">最後揀月亮同燈籠嘅顏色。</p>
-      <div class="grid grid-cols-2 gap-3" id="color-grid"></div>
+    <section id="step-4" class="step-panel" role="region" aria-label="步驟 4：選擇顏色">
+      <div class="step-header">
+        <h2 class="text-3xl font-extrabold mb-2">🌙 揀顏色</h2>
+        <p class="text-lg text-stone-600 mb-3">揀月亮同夜空嘅顏色。</p>
+        <div class="step-picked-strip" id="picked-strip-4" aria-label="已選擇的顏色"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mt-3" id="color-grid"></div>
     </section>
 
-    <!-- Step 5: Summary / Confirm -->
-    <section id="step-5" class="step-panel">
+    <!-- Step 5: Summary -->
+    <section id="step-5" class="step-panel" role="region" aria-label="步驟 5：確認並生成">
       <h2 class="text-3xl font-extrabold mb-2">✅ 確認你嘅選擇</h2>
       <p class="text-lg text-stone-600 mb-5">晒下你揀啲乜？搞掂就撳「生成提詞」！</p>
       <div class="space-y-3" id="summary-list"></div>
       <div class="mt-6 p-4 bg-orange-50 rounded-3xl border-4 border-orange-200">
-        <p class="text-sm text-stone-500 mb-3 font-bold"><i class="fa-solid fa-magic mr-1"></i>按呢個掣就會生成中秋圖提詞：</p>
+        <p class="text-sm text-stone-500 mb-3 font-bold">
+          <i class="fa-solid fa-magic mr-1"></i>按呢個掣就會生成中秋圖提詞：
+        </p>
         <button onclick="generatePrompt()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-xl py-5 rounded-3xl shadow-xl">
           🌕 生成中秋圖提詞 🌕
         </button>
@@ -142,47 +169,48 @@
         </div>
         <span class="text-xs font-bold text-stone-500" id="resultHint">老師可複製去圖像 AI</span>
       </div>
-      <p id="outZh" class="bg-white rounded-2xl p-3 min-h-[72px] text-base font-semibold leading-relaxed border-2 border-orange-100">
+      <p id="outZh" class="bg-white rounded-2xl p-3 min-h-[72px] text-base font-semibold leading-relaxed border-2 border-orange-100" aria-live="polite">
         請先完成所有選擇。
       </p>
-      <p id="outEn" class="hidden bg-white rounded-2xl p-3 min-h-[72px] text-sm font-medium leading-relaxed border-2 border-orange-100"></p>
-      <button onclick="copyPrompt()" id="copyBtn" class="mt-3 w-full bg-stone-900 text-white font-extrabold py-3 rounded-2xl">
+      <p id="outEn" class="hidden bg-white rounded-2xl p-3 min-h-[72px] text-sm font-medium leading-relaxed border-2 border-orange-100" aria-live="polite">
+      </p>
+      <button onclick="copyPrompt()" class="mt-3 w-full bg-stone-900 text-white font-extrabold py-3 rounded-2xl">
         <i class="fa-solid fa-copy mr-2"></i>複製提詞
       </button>
     </div>
   </div>
 
-  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-orange-600 text-white font-extrabold px-6 py-3 rounded-full opacity-0 pointer-events-none transition z-50">已複製！</div>
+  <div id="toast" role="status" aria-live="polite" class="fixed top-20 left-1/2 -translate-x-1/2 bg-orange-600 text-white font-extrabold px-6 py-3 rounded-full opacity-0 pointer-events-none transition z-50">已複製！</div>
 
 <script>
 const data = {
   who: [
-    { id:'family', zh:'一家人 👨‍👩‍👧‍👦', en:'a happy family together', img:'img/who-family.jpg' },
-    { id:'kids', zh:'小朋友 👧👦', en:'cheerful children', img:'img/who-kids.jpg' },
-    { id:'rabbit', zh:'🐇 白兔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
-    { id:'fairy', zh:'👸 仙女姐姐', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
+    { id:'family', zh:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
+    { id:'kids', zh:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
+    { id:'rabbit', zh:'🐇 兔仔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
+    { id:'fairy', zh:'👸 仙女', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
     { id:'cat', zh:'🐱 小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
     { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' }
   ],
   act: [
-    { id:'moon', zh:'🌝 望住月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
-    { id:'lantern', zh:'🏮 拎住燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
+    { id:'moon', zh:'🌝 望月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
+    { id:'lantern', zh:'🏮 拎燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
     { id:'cake', zh:'🥮 食月餅', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
-    { id:'sky', zh:'🎈 放燈籠上天', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
-    { id:'garden', zh:'🌸 花園行嚇', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
-    { id:'boat', zh:'🌊 湖邊望月', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' }
+    { id:'sky', zh:'🎈 放天燈', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
+    { id:'garden', zh:'🌸 花園行', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
+    { id:'boat', zh:'🌊 湖邊坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' }
   ],
   style: [
     { id:'cartoon', zh:'😊 可愛卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
     { id:'picturebook', zh:'🎨 圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
-    { id:'paper', zh:'✂️ 剪紙公仔', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
-    { id:'night', zh:'🌙 夜晚天空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
+    { id:'paper', zh:'✂️ 剪紙畫', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
+    { id:'night', zh:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
   ],
   color: [
-    { id:'gold', zh:'🌝 金黃色', en:'golden yellow, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
-    { id:'red', zh:'🏮 紅色', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
-    { id:'purple', zh:'🌌 紫色', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
-    { id:'osmanthus', zh:'🌼 黃色', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
+    { id:'gold', zh:'🌝 金黃（月亮）', en:'golden yellow moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
+    { id:'red', zh:'🏮 紅色（燈籠）', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
+    { id:'purple', zh:'🌌 紫色（夜空）', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
+    { id:'osmanthus', zh:'🌼 黃色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
   ]
 };
 
@@ -193,12 +221,9 @@ let step = 1;
 const total = 5;
 let tab = 'zh';
 let sel = { who:null, act:null, style:null, color:null };
-let generated = false;
 let bigMode = false;
-let speakingId = null;
 
 // ── Voice ────────────────────────────────────────────────────────────────
-const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
 function getVoice() {
   const list = window.speechSynthesis?.getVoices() || [];
   return list.find(v => v.lang.startsWith('zh')) || list[0] || null;
@@ -212,18 +237,14 @@ function speak(text, btnEl) {
   const v = getVoice();
   if (v) u.voice = v;
   u.onend = u.onerror = () => {
-    if (speakingId === btnEl) {
-      speakingId = null;
-      btnEl?.classList.remove('speaking');
-    }
+    if (btnEl) btnEl.classList.remove('speaking');
   };
-  speakingId = btnEl;
   if (btnEl) btnEl.classList.add('speaking');
   window.speechSynthesis.speak(u);
 }
 if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = () => voices.push(...window.speechSynthesis.getVoices());
-  window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices(); // prime voices list
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 }
 
 // ── Sound ─────────────────────────────────────────────────────────────────
@@ -244,15 +265,28 @@ function playChime() {
   } catch(e) {}
 }
 
+// ── Picked strip (cross-step selection visibility) ──────────────────────
+function renderPickedStrip(stripId, s) {
+  const el = document.getElementById(stripId);
+  if (!el) return;
+  if (!s) { el.innerHTML = ''; return; }
+  el.innerHTML = `<span class="step-picked-chip">
+    <img src="${s.img}" alt="${s.zh}">
+    ${s.zh}
+  </span>`;
+}
+
 // ── Render: who / act ─────────────────────────────────────────────────────
 function renderWhoAct(id, list, key) {
   const box = document.getElementById(id);
   box.innerHTML = list.map(item => `
     <div class="card rounded-3xl p-3 text-center relative ${sel[key]?.id===item.id?'active':''}" style="min-height:170px">
-      <button class="speak-btn" onclick="event.stopPropagation();speak('${item.zh}', this)" title="朗讀">
+      <button class="speak-btn" aria-label="朗讀：${item.zh}"
+              onclick="event.stopPropagation();speak('${item.zh}', this)">
         <i class="fa-solid fa-volume-high"></i>
       </button>
-      <button class="w-full h-full flex flex-col items-center justify-center gap-1" onclick="pick('${key}','${item.id}')">
+      <button class="w-full h-full flex flex-col items-center justify-center gap-1"
+              onclick="doPick('${key}','${item.id}')">
         <img src="${item.img}" alt="${item.zh}" style="width:90px;height:90px;object-fit:cover;border-radius:16px;border:3px solid #fde68a;" loading="lazy">
         <span class="card-text text-lg font-extrabold mt-1 leading-tight">${item.zh}</span>
       </button>
@@ -265,10 +299,12 @@ function renderStyle() {
   const box = document.getElementById('style-grid');
   box.innerHTML = data.style.map(item => `
     <div class="card rounded-3xl p-3 text-center relative ${sel.style?.id===item.id?'active':''}" style="min-height:170px">
-      <button class="speak-btn" onclick="event.stopPropagation();speak('${item.zh}', this)" title="朗讀">
+      <button class="speak-btn" aria-label="朗讀：${item.zh}"
+              onclick="event.stopPropagation();speak('${item.zh}', this)">
         <i class="fa-solid fa-volume-high"></i>
       </button>
-      <button class="w-full h-full flex flex-col items-center justify-center gap-2" onclick="pick('style','${item.id}')">
+      <button class="w-full h-full flex flex-col items-center justify-center gap-2"
+              onclick="doPick('style','${item.id}')">
         <img src="${item.img}" alt="${item.zh}" style="width:110px;height:80px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;" loading="lazy">
         <span class="card-text text-lg font-extrabold">${item.zh}</span>
       </button>
@@ -281,10 +317,12 @@ function renderColor() {
   const box = document.getElementById('color-grid');
   box.innerHTML = data.color.map(item => `
     <div class="card rounded-3xl p-3 text-center relative ${sel.color?.id===item.id?'active':''}" style="min-height:170px">
-      <button class="speak-btn" onclick="event.stopPropagation();speak('${item.zh}', this)" title="朗讀">
+      <button class="speak-btn" aria-label="朗讀：${item.zh}"
+              onclick="event.stopPropagation();speak('${item.zh}', this)">
         <i class="fa-solid fa-volume-high"></i>
       </button>
-      <button class="w-full h-full flex flex-col items-center justify-center gap-2" onclick="pick('color','${item.id}')">
+      <button class="w-full h-full flex flex-col items-center justify-center gap-2"
+              onclick="doPick('color','${item.id}')">
         <img src="${item.img}" alt="${item.zh}" style="width:140px;height:70px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;" loading="lazy">
         <span class="card-text text-lg font-extrabold">${item.zh}</span>
       </button>
@@ -299,7 +337,9 @@ function renderSummary() {
   summaryList.innerHTML = ['who','act','style','color'].map(key => {
     const s = sel[key];
     const done = s !== null;
-    const imgTag = done && s.img ? `<img src="${s.img}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;border:2px solid #fde68a;flex-shrink:0">` : `<div style="width:60px;height:60px;background:#fde68a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">❓</div>`;
+    const imgTag = done && s.img
+      ? `<img src="${s.img}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;border:2px solid #fde68a;flex-shrink:0" alt="${s.zh}">`
+      : `<div style="width:60px;height:60px;background:#fde68a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0" aria-hidden="true">❓</div>`;
     return `
       <div class="flex items-center gap-4 bg-white rounded-2xl p-3 border-2 ${done?'border-orange-200':'border-stone-300'}">
         ${imgTag}
@@ -323,17 +363,22 @@ function renderAll() {
   renderColor();
   renderSummary();
 
+  // Picked strips — always visible at top of each step
+  renderPickedStrip('picked-strip-1', sel.who);
+  renderPickedStrip('picked-strip-2', sel.act);
+  renderPickedStrip('picked-strip-3', sel.style);
+  renderPickedStrip('picked-strip-4', sel.color);
+
   document.getElementById('dots').innerHTML = Array.from({length:total}, (_,i)=>`
-    <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'} ${i+1>step?'opacity:40':''}"></span>
+    <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'}"
+          aria-hidden="true"></span>
   `).join('');
   document.getElementById('stepLabel').textContent = `第 ${step} 步 / 共 ${total} 步`;
   document.querySelectorAll('.step-panel').forEach((el,i)=> el.classList.toggle('active', i+1===step));
   document.getElementById('prevBtn').classList.toggle('invisible', step===1);
 
-  // nextBtn logic
   const nextWrap = document.getElementById('nextWrap');
   if (step === 4) {
-    // After step 4 → go to summary (step 5)
     nextWrap.innerHTML = `<button onclick="go(1)" class="bg-orange-500 text-white font-extrabold text-lg px-8 py-4 rounded-3xl shadow-lg">
       ✅ 確認選擇 <i class="fa-solid fa-arrow-right ml-2"></i>
     </button>`;
@@ -346,12 +391,31 @@ function renderAll() {
   }
 }
 
+function doPick(key, id) {
+  sel[key] = (key==='color'?data.color:key==='who'?data.who:key==='act'?data.act:data.style).find(x=>x.id===id);
+  playChime();
+  renderAll();
+  if (step < 4) {
+    clearTimeout(window._advTimer);
+    window._advTimer = setTimeout(() => {
+      step = step + 1;
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Move keyboard focus to new panel heading
+      const headings = document.querySelectorAll('.step-panel h2');
+      if (headings[step-1]) headings[step-1].focus();
+    }, 600);
+  }
+}
+
 function go(d) {
   const next = step + d;
   if (next < 1 || next > total) return;
   step = next;
   renderAll();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  const headings = document.querySelectorAll('.step-panel h2');
+  if (headings[step-1]) headings[step-1].focus();
 }
 
 function goToStep(key) {
@@ -359,6 +423,8 @@ function goToStep(key) {
   step = map[key] || 1;
   renderAll();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  const headings = document.querySelectorAll('.step-panel h2');
+  if (headings[step-1]) headings[step-1].focus();
 }
 
 function setTab(t) {
@@ -405,14 +471,12 @@ function updatePrompt() {
 }
 
 function generatePrompt() {
-  generated = true;
   updatePrompt();
   playChime();
-  // Show toast
   const t = document.getElementById('toast');
   t.textContent = '🌕 提詞已生成！';
   t.style.opacity = 1;
-  setTimeout(() => t.style.opacity = 0, 2000);
+  setTimeout(() => { t.style.opacity = 0; t.textContent = '已複製！'; }, 2000);
 }
 
 function copyPrompt() {
@@ -421,6 +485,7 @@ function copyPrompt() {
     : document.getElementById('outEn').textContent;
   navigator.clipboard.writeText(text).then(()=>{
     const t = document.getElementById('toast');
+    t.textContent = '已複製！';
     t.style.opacity = 1;
     setTimeout(() => t.style.opacity = 0, 1400);
   });
@@ -432,46 +497,27 @@ function randomizeAll() {
   sel.act = pickRand(data.act);
   sel.style = pickRand(data.style);
   sel.color = pickRand(data.color);
-  generated = false;
   step = 5;
   renderAll();
-  renderSummary();
+  generatePrompt(); // auto-generate on random
   playChime();
 }
 
 function resetAll() {
   sel = { who:null, act:null, style:null, color:null };
   step = 1;
-  generated = false;
   window.speechSynthesis?.cancel();
   renderAll();
-  renderSummary();
 }
 
 function toggleBigMode() {
   bigMode = !bigMode;
   document.body.classList.toggle('big-mode', bigMode);
-  document.getElementById('bigModeBtn').classList.toggle('bg-orange-100', bigMode);
-  document.getElementById('bigModeBtn').classList.toggle('border-orange-400', bigMode);
-  document.getElementById('bigModeBtn').classList.toggle('text-orange-700', bigMode);
+  const btn = document.getElementById('bigModeBtn');
+  btn.classList.toggle('bg-orange-100', bigMode);
+  btn.classList.toggle('border-orange-400', bigMode);
+  btn.classList.toggle('text-orange-700', bigMode);
 }
-
-// Auto-advance after picking
-function doPick(key, id) {
-  sel[key] = (key==='color'?data.color:data[key]==='who'?data.who:data[key]==='act'?data.act:data.style).find(x=>x.id===id);
-  playChime();
-  generated = false;
-  renderAll();
-  if (step < 4) {
-    clearTimeout(window._advTimer);
-    window._advTimer = setTimeout(() => {
-      step = step + 1;
-      renderAll();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 600);
-  }
-}
-function pick(key, id) { doPick(key, id); }
 
 renderAll();
 </script>
