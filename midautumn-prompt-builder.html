@@ -677,6 +677,16 @@ function commitPending() {
   return true;
 }
 
+// Scroll next-btn into view if it's below the fold
+function scrollToNextButton() {
+  const el = document.getElementById('nextWrap');
+  if (!el || !el.innerHTML.trim()) return;
+  const rect = el.getBoundingClientRect();
+  if (rect.top > window.innerHeight - 20) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function go(d) {
   if (d > 0) commitPending(); // 「下一頁 / 確認選擇」= 確認而家張卡
   const next = step + d;
@@ -714,6 +724,7 @@ function pick(key, id) {
       generated = false;
       renderAll();
       updatePrompt();
+      scrollToNextButton();
       return;
     }
     playChime();
@@ -721,6 +732,7 @@ function pick(key, id) {
     generated = false;
     renderAll();
     updatePrompt();
+    scrollToNextButton();
     // Auto-advance only for single-select keys in big mode
     if (bigMode && !isMulti(key) && step < 4) {
       clearTimeout(window._advTimer);
@@ -730,6 +742,9 @@ function pick(key, id) {
         updatePrompt();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 600);
+    } else {
+      // non-big or multi: scroll next btn into view after confirm
+      scrollToNextButton();
     }
   };
 
