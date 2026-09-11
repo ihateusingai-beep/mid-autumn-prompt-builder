@@ -388,7 +388,8 @@ let soundOn = true;
 let speakingId = null;
 let hasZhVoice = false;
 let pendingKey = null;   // key awaiting confirm in normal mode
-let pendingId = null;
+let pendingId = null;    // id of the pending card
+let _pendingTimer = null;
 
 // ── Voice ────────────────────────────────────────────────────────────────
 function detectVoice() {
@@ -661,14 +662,16 @@ function renderAll() {
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────
-// Commit green "pending" card into real selection (fixes Next/確認選擇 dropping pick)
+// Commit pending single-select card when user taps Next / goToStep / generate
 function commitPending() {
   if (!pendingKey || !pendingId) return false;
-  const item = getDataList(pendingKey).find(x => x.id === pendingId);
-  if (!item) { pendingKey = null; pendingId = null; return false; }
-  const result = applyPick(pendingKey, item);
+  clearTimeout(_pendingTimer);
+  const k = pendingKey, id = pendingId;
+  const item = getDataList(k).find(x => x.id === id);
   pendingKey = null;
   pendingId = null;
+  if (!item) return false;
+  const result = applyPick(k, item);
   if (result === 'full') {
     showToast(`最多揀 ${MULTI_MAX} 樣`, 'bg-red-500');
     return false;
@@ -706,63 +709,77 @@ function goToStep(key) {
 }
 
 // ── Pick logic ────────────────────────────────────────────────────────────
-// Single (who/style): 1st pending, 2nd/Next commits
-// Multi (act/color): same, but toggles in list (max 2); no auto-advance so can pick 2nd
+// Single (who/style): 1st tap → pending (green badge), 2nd tap / Next → confirm
+// Multi (act/color): immediate apply (toggle add/remove), no pending state needed
 function pick(key, id) {
-  const list = getDataList(key);
-  const item = list.find(x => x.id === id);
+  const item = getDataList(key).find(x => x.id === id);
   if (!item) return;
 
-  const finish = (result) => {
-    if (result === 'full') {
-      showToast(`最多揀 ${MULTI_MAX} 樣`, 'bg-red-500');
-      renderAll();
-      return;
-    }
-    if (result === 'removed') {
-      playChime();
-      generated = false;
-      renderAll();
-      updatePrompt();
-      scrollToNextButton();
-      return;
-    }
-    playChime();
-    speakChoice(item.zh);
-    generated = false;
-    renderAll();
-    updatePrompt();
-    scrollToNextButton();
-    // Auto-advance only for single-select keys in big mode
-    if (bigMode && !isMulti(key) && step < 4) {
-      clearTimeout(window._advTimer);
-      window._advTimer = setTimeout(() => {
-        step = step + 1;
-        renderAll();
-        updatePrompt();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 600);
-    } else {
-      // non-big or multi: scroll next btn into view after confirm
-      scrollToNextButton();
-    }
-  };
+  // Multi-select: immediate apply — no pending state
+  if (isMulti(key)) {
+    doApply(key, item);
+    return;
+  }
 
+  // Single-select: pending flow
   if (bigMode) {
     pendingKey = null;
     pendingId = null;
-    finish(applyPick(key, item));
+    doApply(key, item);
+    autoAdvance(key);
+    return;
+  }
+
+  if (pendingKey === key && pendingId === id) {
+    // Second tap → confirm
+    pendingKey = null;
+    pendingId = null;
+    clearTimeout(_pendingTimer);
+    doApply(key, item);
+    autoAdvance(key);
   } else {
-    if (pendingKey === key && pendingId === id) {
+    // First tap → show pending badge; auto-clear after 2s so stale state doesn't block
+    clearTimeout(_pendingTimer);
+    pendingKey = key;
+    pendingId = id;
+    _pendingTimer = setTimeout(() => {
+      // Timeout: commit as confirmed (same as Next behavior)
+      const pItem = getDataList(pendingKey).find(x => x.id === pendingId);
       pendingKey = null;
       pendingId = null;
-      finish(applyPick(key, item));
-    } else {
-      // Already selected multi item: allow quick toggle-off with double path via pending
-      pendingKey = key;
-      pendingId = id;
+      if (pItem) doApply(key, pItem);
+    }, 2000);
+    renderAll();
+  }
+}
+
+// Shared apply + post-apply feedback
+function doApply(key, item) {
+  const result = applyPick(key, item);
+  if (result === 'full') {
+    showToast(`最多揀 ${MULTI_MAX} 樣`, 'bg-red-500');
+    renderAll();
+    return;
+  }
+  playChime();
+  if (result !== 'removed') speakChoice(item.zh);
+  generated = false;
+  renderAll();
+  updatePrompt();
+  scrollToNextButton();
+}
+
+// Big-mode auto-advance for single-select only
+function autoAdvance(key) {
+  if (bigMode && !isMulti(key) && step < 4) {
+    clearTimeout(window._advTimer);
+    window._advTimer = setTimeout(() => {
+      commitPending();
+      step = step + 1;
       renderAll();
-    }
+      updatePrompt();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 600);
   }
 }
 
@@ -900,6 +917,7 @@ function resetAll() {
   generated = false;
   pendingKey = null;
   pendingId = null;
+  clearTimeout(_pendingTimer);
   const nameEl = document.getElementById('studentName');
   if (nameEl) nameEl.value = '';
   window.speechSynthesis?.cancel();
@@ -915,7 +933,7 @@ function toggleBigMode() {
   btn.classList.toggle('border-orange-400', bigMode);
   btn.classList.toggle('text-orange-700', bigMode);
   // Clear pending in normal mode when switching
-  if (bigMode) { pendingKey = null; pendingId = null; }
+  if (bigMode) { clearTimeout(_pendingTimer); pendingKey = null; pendingId = null; }
   renderAll();
 }
 
