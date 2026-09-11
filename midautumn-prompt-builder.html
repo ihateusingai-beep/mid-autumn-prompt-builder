@@ -174,7 +174,8 @@
     <!-- Step 2 -->
     <section id="step-2" class="step-panel">
       <h2 class="text-3xl font-extrabold mb-2">🎯 佢哋做緊咩？</h2>
-      <p class="text-lg text-stone-600 mb-5">揀一件最開心嘅事。</p>
+      <p class="text-lg text-stone-600 mb-2">可以揀 <b>1 至 2</b> 件開心嘅事。</p>
+      <p id="actPickHint" class="text-base font-extrabold text-orange-600 mb-4">已揀 0 / 2</p>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="act-grid"></div>
     </section>
 
@@ -188,7 +189,8 @@
     <!-- Step 4 -->
     <section id="step-4" class="step-panel">
       <h2 class="text-3xl font-extrabold mb-2">🌙 夜空同顏色</h2>
-      <p class="text-lg text-stone-600 mb-5">最後揀月亮同燈籠嘅顏色。</p>
+      <p class="text-lg text-stone-600 mb-2">可以揀 <b>1 至 2</b> 種顏色（例如金+紅）。</p>
+      <p id="colorPickHint" class="text-base font-extrabold text-orange-600 mb-4">已揀 0 / 2</p>
       <div class="grid grid-cols-2 gap-3" id="color-grid"></div>
     </section>
 
@@ -330,9 +332,13 @@ const data = {
     { id:'family', zh:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
     { id:'kids', zh:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
     { id:'rabbit', zh:'🐇 兔仔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
-    { id:'fairy', zh:'👸 仙女', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
+    { id:'fairy', zh:'👸 嫦娥', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
     { id:'cat', zh:'🐱 小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
-    { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' }
+    { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' },
+    { id:'grandparents', zh:'爺爺奶奶', en:'kind grandpa and grandma', img:'img/who-family.jpg' },
+    { id:'classmates', zh:'老師同學', en:'a friendly teacher with classmates', img:'img/who-kids.jpg' },
+    { id:'fairyrabbit', zh:'嫦娥同玉兔', en:'Chang-e with the jade rabbit together', img:'img/who-change.jpg' },
+    { id:'friends', zh:'好朋友', en:'two happy best friends', img:'img/who-kids.jpg' }
   ],
   act: [
     { id:'moon', zh:'🌝 望月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
@@ -340,19 +346,27 @@ const data = {
     { id:'cake', zh:'🥮 食月餅', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
     { id:'sky', zh:'🎈 放天燈', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
     { id:'garden', zh:'🌸 花園行', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
-    { id:'boat', zh:'🌊 湖邊坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' }
+    { id:'boat', zh:'🌊 湖邊坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' },
+    { id:'share', zh:'🍰 分享月餅', en:'happily sharing mooncakes with others', img:'img/act-cake.jpg' },
+    { id:'parade', zh:'🚶 提燈遊園', en:'strolling in a lantern parade in the park', img:'img/act-lantern.jpg' },
+    { id:'photo', zh:'📷 團圓影相', en:'taking a warm family photo under the moon', img:'img/act-garden.jpg' },
+    { id:'candy', zh:'🍬 食糖仔', en:'enjoying sweet festive candies', img:'img/act-cake.jpg' }
   ],
   style: [
     { id:'cartoon', zh:'😊 可愛卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
     { id:'picturebook', zh:'🎨 圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
     { id:'paper', zh:'✂️ 剪紙畫', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
-    { id:'night', zh:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
+    { id:'night', zh:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' },
+    { id:'simple', zh:'✏️ 簡筆畫', en:'simple line drawing for kids, clear shapes, minimal detail', img:'img/style-cartoon.jpg' },
+    { id:'softnight', zh:'🌌 溫柔夜景', en:'soft gentle night watercolor, warm glow, calm and safe', img:'img/style-night.jpg' }
   ],
   color: [
     { id:'gold', zh:'🌝 金黃（月亮）', en:'golden yellow moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
     { id:'red', zh:'🏮 紅色（燈籠）', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
     { id:'purple', zh:'🌌 紫色（夜空）', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
-    { id:'osmanthus', zh:'🌼 黃色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
+    { id:'osmanthus', zh:'🌼 黃色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' },
+    { id:'silver', zh:'🌕 銀白（月光）', en:'silvery white moonlight and soft cool glow', css:'linear-gradient(135deg,#94a3b8,#f8fafc)', img:'img/color-gold.jpg' },
+    { id:'orange', zh:'🌅 橙紅（燈火）', en:'warm orange-red lantern light and sunset glow', css:'linear-gradient(135deg,#ea580c,#fbbf24)', img:'img/color-red.jpg' }
   ]
 };
 
@@ -365,7 +379,9 @@ const PIN_KEY = 'midautumn_pin';
 let step = 1;
 const total = 5;
 let tab = 'zh';
-let sel = { who:null, act:null, style:null, color:null };
+const MULTI_KEYS = { act: true, color: true };
+const MULTI_MAX = 2;
+let sel = { who: null, act: [], style: null, color: [] };
 let generated = false;
 let bigMode = false;
 let soundOn = true;
@@ -456,22 +472,69 @@ function getDataList(key) {
   if (key === 'color') return data.color;
   return [];
 }
+function isMulti(key) { return !!MULTI_KEYS[key]; }
+function getSelItems(key) {
+  if (isMulti(key)) return Array.isArray(sel[key]) ? sel[key] : [];
+  return sel[key] ? [sel[key]] : [];
+}
+function isItemSelected(key, id) {
+  return getSelItems(key).some(x => x.id === id);
+}
+function hasSelection(key) {
+  return getSelItems(key).length > 0;
+}
+function selLabel(key) {
+  const items = getSelItems(key);
+  if (!items.length) return '';
+  return items.map(x => x.zh).join('、');
+}
+function selLabelEn(key) {
+  const items = getSelItems(key);
+  if (!items.length) return '';
+  return items.map(x => x.en).join(', and ');
+}
+/** Apply pick: single replace; multi toggle add/remove (max MULTI_MAX). Returns 'added'|'removed'|'full'|'set' */
+function applyPick(key, item) {
+  if (isMulti(key)) {
+    const arr = getSelItems(key).slice();
+    const idx = arr.findIndex(x => x.id === item.id);
+    if (idx >= 0) {
+      arr.splice(idx, 1);
+      sel[key] = arr;
+      return 'removed';
+    }
+    if (arr.length >= MULTI_MAX) return 'full';
+    arr.push(item);
+    sel[key] = arr;
+    return 'added';
+  }
+  sel[key] = item;
+  return 'set';
+}
+function updateMultiHints() {
+  const actEl = document.getElementById('actPickHint');
+  const colEl = document.getElementById('colorPickHint');
+  if (actEl) actEl.textContent = `已揀 ${getSelItems('act').length} / ${MULTI_MAX}`;
+  if (colEl) colEl.textContent = `已揀 ${getSelItems('color').length} / ${MULTI_MAX}`;
+}
 
 function renderCard(item, key) {
-  const isActive = sel[key]?.id === item.id;
+  const isActive = isItemSelected(key, item.id);
   const isConfirming = !bigMode && pendingKey === key && pendingId === item.id;
   const voiceClass = !hasZhVoice ? 'no-voice' : '';
   const voiceTitle = !hasZhVoice ? '此裝置無粵語語音' : '朗讀';
   const voiceIcon = !hasZhVoice ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
   const cardClass = isConfirming ? 'confirming' : isActive ? 'active' : '';
   const flashClass = isConfirming ? 'just-picked' : '';
+  // Escape single quotes in zh for inline onclick
+  const zhSafe = String(item.zh).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
   // Color cards: use CSS gradient, no image
   if (key === 'color') {
     const css = item.css || '';
     return `
       <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}" style="min-height:170px;background:${css};background-size:cover">
-        <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${item.zh}', this)" title="${voiceTitle}">
+        <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${zhSafe}', this)" title="${voiceTitle}">
           <i class="${voiceIcon}"></i>
         </button>
         <div class="w-full h-full flex flex-col items-center justify-center" onclick="pick('${key}','${item.id}')">
@@ -485,7 +548,7 @@ function renderCard(item, key) {
   const imgStyle = key === 'style' ? 'width:110px;height:80px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;' : 'width:90px;height:90px;object-fit:cover;border-radius:16px;border:3px solid #fde68a;';
   return `
     <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}" style="min-height:170px">
-      <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${item.zh}', this)" title="${voiceTitle}">
+      <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${zhSafe}', this)" title="${voiceTitle}">
         <i class="${voiceIcon}"></i>
       </button>
       <button class="w-full h-full flex flex-col items-center justify-center gap-1" onclick="pick('${key}','${item.id}')">
@@ -508,34 +571,58 @@ function renderColor() {
 }
 
 // ── Summary ───────────────────────────────────────────────────────────────
-let _prevSel = { who:null, act:null, style:null, color:null };
+let _prevSel = { who:null, act:[], style:null, color:[] };
 function renderSummary() {
-  const stepNames = { who:'👤 主角', act:'🎯 活動', style:'🎨 畫風', color:'🌙 顏色' };
+  const stepNames = { who:'👤 主角', act:'🎯 活動（可多選）', style:'🎨 畫風', color:'🌙 顏色（可多選）' };
   const summaryList = document.getElementById('summary-list');
   summaryList.innerHTML = ['who','act','style','color'].map(key => {
-    const s = sel[key];
-    const done = s !== null;
-    const wasUpdated = done && _prevSel[key]?.id !== s.id;
+    const items = getSelItems(key);
+    const done = items.length > 0;
+    const label = done ? items.map(x => x.zh).join('、') : '未揀';
+    const prevIds = (isMulti(key) ? (_prevSel[key]||[]) : (_prevSel[key] ? [_prevSel[key]] : [])).map(x => x.id).join(',');
+    const nowIds = items.map(x => x.id).join(',');
+    const wasUpdated = done && prevIds !== nowIds;
     const flashClass = wasUpdated ? 'summary-row-flash' : '';
-    const imgTag = done
-      ? (key === 'color'
-          ? `<div style="width:60px;height:60px;border-radius:12px;border:2px solid #fde68a;flex-shrink:0;background:${s.css || '#fde68a'};background-size:cover"></div>`
-          : `<img src="${s.img}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;border:2px solid #fde68a;flex-shrink:0">`)
-      : `<div style="width:60px;height:60px;background:#fde68a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">❓</div>`;
+    let imgTag;
+    if (!done) {
+      imgTag = `<div style="width:60px;height:60px;background:#fde68a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">❓</div>`;
+    } else if (key === 'color') {
+      const css = items.map(x => x.css).filter(Boolean).join(',') || '#fde68a';
+      // show first color swatch; if 2, split
+      if (items.length === 1) {
+        imgTag = `<div style="width:60px;height:60px;border-radius:12px;border:2px solid #fde68a;flex-shrink:0;background:${items[0].css || '#fde68a'}"></div>`;
+      } else {
+        imgTag = `<div style="width:60px;height:60px;border-radius:12px;border:2px solid #fde68a;flex-shrink:0;display:flex;overflow:hidden">
+          <div style="flex:1;background:${items[0].css || '#fde68a'}"></div>
+          <div style="flex:1;background:${items[1].css || '#fde68a'}"></div>
+        </div>`;
+      }
+    } else if (items.length === 1) {
+      imgTag = `<img src="${items[0].img}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;border:2px solid #fde68a;flex-shrink:0">`;
+    } else {
+      imgTag = `<div style="width:60px;height:60px;border-radius:12px;border:2px solid #fde68a;flex-shrink:0;display:flex;overflow:hidden">
+        <img src="${items[0].img}" style="width:50%;height:100%;object-fit:cover">
+        <img src="${items[1].img}" style="width:50%;height:100%;object-fit:cover">
+      </div>`;
+    }
     return `
       <div class="flex items-center gap-4 bg-white rounded-2xl p-3 border-2 ${done?'border-orange-200':'border-stone-300'} ${flashClass}" id="sum-${key}">
         ${imgTag}
         <div class="flex-1">
           <div class="text-sm font-bold text-stone-400 uppercase tracking-wide">${stepNames[key]}</div>
-          <div class="text-lg font-extrabold ${done?'text-stone-800':'text-stone-400'}">${done ? s.zh : '未揀'}</div>
+          <div class="text-lg font-extrabold ${done?'text-stone-800':'text-stone-400'}">${label}</div>
         </div>
         <button onclick="goToStep('${key}')" class="flex-shrink-0 bg-orange-100 text-orange-700 font-extrabold px-4 py-2 rounded-2xl border-2 border-orange-300 text-sm">
           ${done?'✏️ 改':'➕ 揀'}
         </button>
       </div>`;
   }).join('');
-  // Snapshot for next comparison
-  _prevSel = JSON.parse(JSON.stringify(sel));
+  _prevSel = {
+    who: sel.who,
+    act: getSelItems('act').map(x => ({...x})),
+    style: sel.style,
+    color: getSelItems('color').map(x => ({...x}))
+  };
 }
 
 // ── Main render ───────────────────────────────────────────────────────────
@@ -545,9 +632,10 @@ function renderAll() {
   renderStyle();
   renderColor();
   renderSummary();
+  updateMultiHints();
 
   document.getElementById('dots').innerHTML = Array.from({length:total}, (_,i)=>`
-    <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'} ${i+1>step?'opacity:40':''}"></span>
+    <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'} ${i+1>step?'opacity-40':''}"></span>
   `).join('');
   document.getElementById('stepLabel').textContent = `第 ${step} 步 / 共 ${total} 步`;
   document.querySelectorAll('.step-panel').forEach((el,i)=> el.classList.toggle('active', i+1===step));
@@ -578,9 +666,13 @@ function commitPending() {
   if (!pendingKey || !pendingId) return false;
   const item = getDataList(pendingKey).find(x => x.id === pendingId);
   if (!item) { pendingKey = null; pendingId = null; return false; }
-  sel[pendingKey] = item;
+  const result = applyPick(pendingKey, item);
   pendingKey = null;
   pendingId = null;
+  if (result === 'full') {
+    showToast(`最多揀 ${MULTI_MAX} 樣`, 'bg-red-500');
+    return false;
+  }
   generated = false;
   return true;
 }
@@ -604,24 +696,33 @@ function goToStep(key) {
 }
 
 // ── Pick logic ────────────────────────────────────────────────────────────
-// P0: Normal mode → 1st tap pending, 2nd tap OR Next/確認選擇 commits
-//     Big mode    → instant pick + auto-advance after 600ms
+// Single (who/style): 1st pending, 2nd/Next commits
+// Multi (act/color): same, but toggles in list (max 2); no auto-advance so can pick 2nd
 function pick(key, id) {
   const list = getDataList(key);
   const item = list.find(x => x.id === id);
   if (!item) return;
 
-  if (bigMode) {
-    // Big mode: instant pick + auto-advance
-    sel[key] = item;
-    pendingKey = null;
-    pendingId = null;
+  const finish = (result) => {
+    if (result === 'full') {
+      showToast(`最多揀 ${MULTI_MAX} 樣`, 'bg-red-500');
+      renderAll();
+      return;
+    }
+    if (result === 'removed') {
+      playChime();
+      generated = false;
+      renderAll();
+      updatePrompt();
+      return;
+    }
     playChime();
     speakChoice(item.zh);
     generated = false;
     renderAll();
     updatePrompt();
-    if (step < 4) {
+    // Auto-advance only for single-select keys in big mode
+    if (bigMode && !isMulti(key) && step < 4) {
       clearTimeout(window._advTimer);
       window._advTimer = setTimeout(() => {
         step = step + 1;
@@ -630,20 +731,19 @@ function pick(key, id) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 600);
     }
+  };
+
+  if (bigMode) {
+    pendingKey = null;
+    pendingId = null;
+    finish(applyPick(key, item));
   } else {
-    // Normal mode: pending confirm
     if (pendingKey === key && pendingId === id) {
-      // Second tap → confirm
-      sel[key] = item;
       pendingKey = null;
       pendingId = null;
-      playChime();
-      speakChoice(item.zh);
-      generated = false;
-      renderAll();
-      updatePrompt();
+      finish(applyPick(key, item));
     } else {
-      // First tap → show confirming state (not yet saved until 2nd tap or Next)
+      // Already selected multi item: allow quick toggle-off with double path via pending
       pendingKey = key;
       pendingId = id;
       renderAll();
@@ -670,13 +770,15 @@ function getStudentName() {
 }
 function onStudentNameInput() {
   // live refresh prompt if already has picks / generated
-  if (sel.who || sel.act || sel.style || sel.color || generated) updatePrompt();
+  if (sel.who || hasSelection('act') || sel.style || hasSelection('color') || generated) updatePrompt();
 }
 
 function updatePrompt() {
-  const who = sel.who, act = sel.act, st = sel.style, col = sel.color;
+  const who = sel.who, st = sel.style;
+  const actItems = getSelItems('act');
+  const colItems = getSelItems('color');
   const name = getStudentName();
-  if (!who && !act && !st && !col) {
+  if (!who && !actItems.length && !st && !colItems.length) {
     document.getElementById('outZh').textContent = '請先撳圖揀主角、活動、畫風、顏色。';
     document.getElementById('outEn').textContent = 'Please pick who / action / style / color first.';
     return;
@@ -698,12 +800,17 @@ function updatePrompt() {
     whoEn = `Student name: ${name}. Main subject: not chosen.`;
   }
 
+  const actZh = actItems.length ? `佢哋喺度${selLabel('act')}。` : '活動：未揀。';
+  const actEn = actItems.length ? `They are ${selLabelEn('act')}.` : 'Action: not chosen.';
+  const colZh = colItems.length ? `顏色係${selLabel('color')}。` : '顏色：未揀。';
+  const colEn = colItems.length ? `Colors: ${selLabelEn('color')}.` : 'Colors: not chosen.';
+
   const zh = [
     '一張開心、容易睇嘅中秋節圖。',
     whoZh,
-    act ? `佢哋喺度${act.zh}。` : '活動：未揀。',
+    actZh,
     st ? `畫風係${st.zh}。` : '畫風：未揀。',
-    col ? `顏色係${col.zh}。` : '顏色：未揀。',
+    colZh,
     '畫面要大、清楚、溫暖、適合小朋友。',
     '負面：' + NEG_ZH
   ].filter(Boolean).join('');
@@ -711,9 +818,9 @@ function updatePrompt() {
   const en = [
     'A joyful Mid-Autumn Festival scene that is easy to understand.',
     whoEn,
-    act ? `They are ${act.en}.` : 'Action: not chosen.',
+    actEn,
     st ? `Art style: ${st.en}.` : 'Art style: not chosen.',
-    col ? `Colors: ${col.en}.` : 'Colors: not chosen.',
+    colEn,
     'Big clear shapes, warm and safe for children, simple composition, centered subject.',
     'Negative prompt: ' + NEG_EN
   ].filter(Boolean).join(' ');
@@ -725,7 +832,7 @@ function updatePrompt() {
 function generatePrompt() {
   commitPending();
   renderAll();
-  if (!sel.who || !sel.act || !sel.style || !sel.color) {
+  if (!sel.who || !hasSelection('act') || !sel.style || !hasSelection('color')) {
     updatePrompt();
     showToast('未揀齊四項，請繼續揀', 'bg-red-500');
     return;
@@ -751,10 +858,17 @@ function copyPrompt() {
 // ── Randomize & Reset ─────────────────────────────────────────────────────
 function randomizeAll() {
   const pickRand = arr => arr[Math.floor(Math.random()*arr.length)];
+  const pickTwo = arr => {
+    const a = pickRand(arr);
+    let b = pickRand(arr);
+    let guard = 0;
+    while (b.id === a.id && guard++ < 8) b = pickRand(arr);
+    return b.id === a.id ? [a] : [a, b];
+  };
   sel.who = pickRand(data.who);
-  sel.act = pickRand(data.act);
+  sel.act = pickTwo(data.act);
   sel.style = pickRand(data.style);
-  sel.color = pickRand(data.color);
+  sel.color = pickTwo(data.color);
   pendingKey = null;
   pendingId = null;
   generated = true;
@@ -766,7 +880,7 @@ function randomizeAll() {
 }
 
 function resetAll() {
-  sel = { who:null, act:null, style:null, color:null };
+  sel = { who:null, act:[], style:null, color:[] };
   step = 1;
   generated = false;
   pendingKey = null;
@@ -879,9 +993,9 @@ function saveToHistory() {
     ts: new Date().toISOString(),
     name: getStudentName(),
     who: sel.who.zh,
-    act: sel.act?.zh || '',
+    act: selLabel('act'),
     style: sel.style?.zh || '',
-    color: sel.color?.zh || '',
+    color: selLabel('color'),
     zh: document.getElementById('outZh').textContent,
     en: document.getElementById('outEn').textContent
   };
@@ -909,10 +1023,16 @@ function loadHistory(idx) {
   const r = h[idx];
   if (!r) return;
   const find = (arr, zh) => arr.find(x => x.zh === zh);
+  const findMulti = (arr, label) => {
+    if (!label) return [];
+    // support "a、b" multi or legacy single zh
+    return String(label).split('、').map(s => s.trim()).filter(Boolean)
+      .map(zh => find(arr, zh)).filter(Boolean);
+  };
   sel.who = find(data.who, r.who) || sel.who;
-  sel.act = r.act ? (find(data.act, r.act) || null) : null;
+  sel.act = findMulti(data.act, r.act);
   sel.style = r.style ? (find(data.style, r.style) || null) : null;
-  sel.color = r.color ? (find(data.color, r.color) || null) : null;
+  sel.color = findMulti(data.color, r.color);
   pendingKey = null; pendingId = null;
   generated = true;
   step = 5;
