@@ -16,12 +16,18 @@
       border: 3px solid #fde68a;
       background: #fffbeb;
       transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+      cursor: pointer;
     }
     .card:hover { transform: translateY(-2px); }
     .card.active {
       border-color: #ea580c;
       background: #ffedd5;
       box-shadow: 0 8px 20px -8px rgba(234,88,12,.45);
+    }
+    .card.confirming {
+      border-color: #16a34a;
+      background: #dcfce7;
+      box-shadow: 0 8px 20px -8px rgba(22,163,74,.4);
     }
     .glass {
       background: rgba(255,251,235,.95);
@@ -43,27 +49,79 @@
       font-size: 13px;
       color: #ea580c;
       transition: background .15s, transform .1s;
+      z-index: 5;
     }
     .speak-btn:hover { background: #fed7aa; transform: scale(1.1); }
-    .speak-btn.speaking { animation: pulse 0.8s infinite; }
+    .speak-btn.speaking { color: #ea580c; animation: pulse 0.8s infinite; }
+    .speak-btn.no-voice { color: #9ca3af; border-color: #d1d5db; cursor: not-allowed; }
+    .speak-btn.no-voice:hover { transform: none; background: rgba(255,255,255,0.9); }
     @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
     .big-mode .card { min-height: 148px; }
     .big-mode .card-text { font-size: 1.5rem !important; }
     .big-mode h2 { font-size: 2.2rem !important; }
     .big-mode .speak-btn { width: 44px; height: 44px; font-size: 18px; }
-    /* Selected indicator strip at top of each step panel */
-    .step-header { position: relative; }
-    .step-picked-strip {
-      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+
+    /* Teacher modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 200; align-items: center; justify-content: center;
     }
-    .step-picked-chip {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: #fff7ed; border: 2px solid #fde68a; border-radius: 999px;
-      padding: 3px 10px; font-size: 0.8rem; font-weight: 700; color: #92400e;
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white; border-radius: 1.5rem; padding: 2rem;
+      max-width: 560px; width: 96%; max-height: 90vh; overflow-y: auto;
+      border: 4px solid #fde68a;
     }
-    .step-picked-chip img {
-      width: 22px; height: 22px; object-fit: cover; border-radius: 50%;
+    /* Confirm badge */
+    .confirm-badge {
+      display: none; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%) scale(0);
+      background: #16a34a; color: white; border-radius: 50%;
+      width: 56px; height: 56px; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: bold;
+      box-shadow: 0 4px 16px rgba(22,163,74,.5);
     }
+    .card.confirming .confirm-badge {
+      display: flex;
+      animation: badgePop .3s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    @keyframes badgePop {
+      from { transform: translate(-50%,-50%) scale(0); opacity:0; }
+      to { transform: translate(-50%,-50%) scale(1); opacity:1; }
+    }
+    /* Confirming card: darken image to make checkmark pop */
+    .card.confirming img { filter: brightness(0.45) saturate(0.3); }
+    .card.confirming .card-text { color: #166534 !important; }
+    /* Print styles */
+    @media print {
+      nav, .sticky-top-nav, #prevBtn, #nextWrap, .confirm-section, button, .no-print { display: none !important; }
+      body { background: white; }
+      .step-panel { display: block !important; }
+      #result-panel { display: block !important; position: static !important; width: 100% !important; }
+      .print-card { border: 2px solid #fde68a; border-radius: 1rem; padding: 1rem; margin-bottom: 0.5rem; page-break-inside: avoid; }
+      .print-label { font-size: 0.75rem; color: #9ca3af; font-weight: bold; text-transform: uppercase; }
+      .print-value { font-size: 1.25rem; font-weight: 800; }
+      .print-prompt { border: 3px solid #ea580c; border-radius: 1rem; padding: 1.5rem; margin-top: 1rem; font-size: 1.1rem; line-height: 1.8; }
+    }
+    /* Pick flash animation */
+    @keyframes pickFlash {
+      0% { box-shadow: 0 0 0 0 rgba(234,88,12,.6); }
+      70% { box-shadow: 0 0 0 12px rgba(234,88,12,0); }
+      100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); }
+    }
+    .card.just-picked { animation: pickFlash 0.5s ease-out; }
+    /* Big mode step dots */
+    .big-mode #dots span { width: 20px !important; height: 20px !important; }
+    /* Confirmed summary row glow */
+    @keyframes rowGlow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(234,88,12,.0); }
+      50% { box-shadow: 0 0 0 6px rgba(234,88,12,.25); }
+    }
+    .summary-row-flash { animation: rowGlow 0.6s ease; }
+    /* Toast colors */
+    #toast.orange { background: #ea580c; }
+    #toast.green { background: #16a34a; }
+    #toast.blue { background: #2563eb; }
   </style>
 </head>
 <body class="bg-amber-50 text-stone-800 min-h-screen">
@@ -73,73 +131,74 @@
       <h1 class="text-xl sm:text-2xl font-extrabold text-orange-700">
         <i class="fa-solid fa-moon mr-2"></i>中秋畫畫提詞器
       </h1>
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         <button id="bigModeBtn" onclick="toggleBigMode()" class="bg-white text-stone-500 font-bold px-3 py-2 rounded-2xl border-2 border-stone-200 text-sm">
           <i class="fa-solid fa-text-height"></i> 大字
+        </button>
+        <button id="soundToggle" onclick="toggleSound()" class="bg-white text-stone-500 font-bold px-3 py-2 rounded-2xl border-2 border-stone-200 text-sm">
+          <i class="fa-solid fa-volume-high" id="soundIcon"></i>
         </button>
         <button onclick="randomizeAll()" class="bg-yellow-300 text-stone-800 font-extrabold px-3 py-2 rounded-2xl border-2 border-yellow-500 text-sm">
           <i class="fa-solid fa-dice mr-1"></i>隨機
         </button>
         <button onclick="resetAll()" class="bg-white text-stone-500 font-bold px-3 py-2 rounded-2xl border-2 border-stone-200 text-sm">重來</button>
+        <button onclick="openTeacherMode()" class="bg-white text-stone-400 font-bold px-3 py-2 rounded-2xl border-2 border-stone-200 text-sm" title="老師模式">
+          <i class="fa-solid fa-user-gear"></i>
+        </button>
       </div>
     </div>
   </nav>
 
   <main class="max-w-3xl mx-auto px-4 pt-6 pb-80">
-    <div class="flex items-center justify-between mb-6">
+    <!-- Confirm hint banner -->
+    <div id="confirmHint" class="hidden mb-4 bg-green-50 border-3 border-green-400 rounded-2xl px-5 py-3 text-center">
+      <p class="text-green-700 font-extrabold text-lg">
+        <i class="fa-solid fa-hand-pointer mr-2"></i>再撳同一張卡確認 ✅
+      </p>
+    </div>
+
+    <div class="flex items-center justify-between mb-4">
       <div class="flex gap-2" id="dots"></div>
       <p class="font-extrabold text-orange-600" id="stepLabel">第 1 步 / 共 5 步</p>
     </div>
 
     <!-- Step 1 -->
-    <section id="step-1" class="step-panel active" role="region" aria-label="步驟 1：選擇主角">
-      <div class="step-header">
-        <h2 class="text-3xl font-extrabold mb-2">👤 邊個係主角？</h2>
-        <p class="text-lg text-stone-600 mb-3">撳一下就揀到。</p>
-        <div class="step-picked-strip" id="picked-strip-1" aria-label="已選擇的主角"></div>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3" id="who-grid"></div>
+    <section id="step-1" class="step-panel active">
+      <h2 class="text-3xl font-extrabold mb-2">👤 邊個係主角？</h2>
+      <p class="text-lg text-stone-600 mb-5">
+        <i class="fa-solid fa-hand-pointer text-orange-400 mr-1"></i>撳卡揀，再撳同一張卡確認 ✅
+      </p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="who-grid"></div>
     </section>
 
     <!-- Step 2 -->
-    <section id="step-2" class="step-panel" role="region" aria-label="步驟 2：選擇活動">
-      <div class="step-header">
-        <h2 class="text-3xl font-extrabold mb-2">🎯 佢哋做緊咩？</h2>
-        <p class="text-lg text-stone-600 mb-3">揀一件最開心嘅事。</p>
-        <div class="step-picked-strip" id="picked-strip-2" aria-label="已選擇的活動"></div>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3" id="act-grid"></div>
+    <section id="step-2" class="step-panel">
+      <h2 class="text-3xl font-extrabold mb-2">🎯 佢哋做緊咩？</h2>
+      <p class="text-lg text-stone-600 mb-5">揀一件最開心嘅事。</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="act-grid"></div>
     </section>
 
     <!-- Step 3 -->
-    <section id="step-3" class="step-panel" role="region" aria-label="步驟 3：選擇畫風">
-      <div class="step-header">
-        <h2 class="text-3xl font-extrabold mb-2">🎨 揀畫法</h2>
-        <p class="text-lg text-stone-600 mb-3">揀一種，愈簡單愈好。</p>
-        <div class="step-picked-strip" id="picked-strip-3" aria-label="已選擇的畫風"></div>
-      </div>
-      <div class="grid grid-cols-2 gap-3 mt-3" id="style-grid"></div>
+    <section id="step-3" class="step-panel">
+      <h2 class="text-3xl font-extrabold mb-2">🎨 畫面係咩感覺？</h2>
+      <p class="text-lg text-stone-600 mb-5">揀一種畫法，愈簡單愈好。</p>
+      <div class="grid grid-cols-2 gap-3" id="style-grid"></div>
     </section>
 
     <!-- Step 4 -->
-    <section id="step-4" class="step-panel" role="region" aria-label="步驟 4：選擇顏色">
-      <div class="step-header">
-        <h2 class="text-3xl font-extrabold mb-2">🌙 揀顏色</h2>
-        <p class="text-lg text-stone-600 mb-3">揀月亮同夜空嘅顏色。</p>
-        <div class="step-picked-strip" id="picked-strip-4" aria-label="已選擇的顏色"></div>
-      </div>
-      <div class="grid grid-cols-2 gap-3 mt-3" id="color-grid"></div>
+    <section id="step-4" class="step-panel">
+      <h2 class="text-3xl font-extrabold mb-2">🌙 夜空同顏色</h2>
+      <p class="text-lg text-stone-600 mb-5">最後揀月亮同燈籠嘅顏色。</p>
+      <div class="grid grid-cols-2 gap-3" id="color-grid"></div>
     </section>
 
-    <!-- Step 5: Summary -->
-    <section id="step-5" class="step-panel" role="region" aria-label="步驟 5：確認並生成">
+    <!-- Step 5: Summary / Confirm -->
+    <section id="step-5" class="step-panel">
       <h2 class="text-3xl font-extrabold mb-2">✅ 確認你嘅選擇</h2>
       <p class="text-lg text-stone-600 mb-5">晒下你揀啲乜？搞掂就撳「生成提詞」！</p>
       <div class="space-y-3" id="summary-list"></div>
       <div class="mt-6 p-4 bg-orange-50 rounded-3xl border-4 border-orange-200">
-        <p class="text-sm text-stone-500 mb-3 font-bold">
-          <i class="fa-solid fa-magic mr-1"></i>按呢個掣就會生成中秋圖提詞：
-        </p>
+        <p class="text-sm text-stone-500 mb-3 font-bold"><i class="fa-solid fa-magic mr-1"></i>按呢個掣就會生成中秋圖提詞：</p>
         <button onclick="generatePrompt()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-xl py-5 rounded-3xl shadow-xl">
           🌕 生成中秋圖提詞 🌕
         </button>
@@ -160,70 +219,122 @@
   </main>
 
   <!-- Result panel -->
-  <div class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[96%] max-w-3xl z-50">
+  <div id="result-panel" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[96%] max-w-3xl z-50">
     <div class="glass border-4 border-orange-200 rounded-3xl p-4 shadow-xl">
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
         <div class="flex gap-2">
           <button id="tabZh" onclick="setTab('zh')" class="px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm">中文提詞</button>
           <button id="tabEn" onclick="setTab('en')" class="px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm">英文 Prompt</button>
         </div>
-        <span class="text-xs font-bold text-stone-500" id="resultHint">老師可複製去圖像 AI</span>
+        <div class="flex gap-2 flex-wrap">
+          <button onclick="saveToHistory()" class="bg-green-100 text-green-700 font-extrabold px-3 py-1 rounded-xl border-2 border-green-300 text-sm no-print">
+            <i class="fa-solid fa-floppy-disk mr-1"></i>儲存
+          </button>
+          <button onclick="window.print()" class="bg-blue-100 text-blue-700 font-extrabold px-3 py-1 rounded-xl border-2 border-blue-300 text-sm no-print">
+            <i class="fa-solid fa-print mr-1"></i>列印
+          </button>
+          <span class="text-xs font-bold text-stone-500 no-print" id="resultHint">老師可複製去圖像 AI</span>
+        </div>
       </div>
-      <p id="outZh" class="bg-white rounded-2xl p-3 min-h-[72px] text-base font-semibold leading-relaxed border-2 border-orange-100" aria-live="polite">
+      <p id="outZh" class="bg-white rounded-2xl p-3 min-h-[72px] text-base font-semibold leading-relaxed border-2 border-orange-100">
         請先完成所有選擇。
       </p>
-      <p id="outEn" class="hidden bg-white rounded-2xl p-3 min-h-[72px] text-sm font-medium leading-relaxed border-2 border-orange-100" aria-live="polite">
-      </p>
-      <button onclick="copyPrompt()" class="mt-3 w-full bg-stone-900 text-white font-extrabold py-3 rounded-2xl">
+      <p id="outEn" class="hidden bg-white rounded-2xl p-3 min-h-[72px] text-sm font-medium leading-relaxed border-2 border-orange-100"></p>
+      <button onclick="copyPrompt()" id="copyBtn" class="mt-3 w-full bg-stone-900 text-white font-extrabold py-3 rounded-2xl">
         <i class="fa-solid fa-copy mr-2"></i>複製提詞
       </button>
     </div>
   </div>
 
-  <div id="toast" role="status" aria-live="polite" class="fixed top-20 left-1/2 -translate-x-1/2 bg-orange-600 text-white font-extrabold px-6 py-3 rounded-full opacity-0 pointer-events-none transition z-50">已複製！</div>
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-orange-600 text-white font-extrabold px-6 py-3 rounded-full opacity-0 pointer-events-none transition z-50">已複製！</div>
+
+  <!-- Teacher mode modal -->
+  <div id="teacherModal" class="modal-overlay" onclick="if(event.target===this)closeTeacherMode()">
+    <div class="modal-box">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-extrabold text-orange-700"><i class="fa-solid fa-user-gear mr-2"></i>老師模式</h2>
+        <button onclick="closeTeacherMode()" class="text-stone-400 hover:text-stone-700 text-2xl"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- PIN gate -->
+      <div id="pinGate">
+        <p class="text-stone-600 mb-4 font-semibold">請輸入 PIN 碼（四位數字）</p>
+        <div class="flex gap-2 mb-4">
+          <input type="password" id="pinInput" maxlength="4" pattern="[0-9]*" inputmode="numeric"
+            class="flex-1 text-center text-2xl font-bold border-3 border-stone-300 rounded-2xl px-4 py-3 focus:border-orange-400 focus:outline-none"
+            onkeydown="if(event.key==='Enter')checkPin()" placeholder="----">
+          <button onclick="checkPin()" class="bg-orange-500 text-white font-extrabold px-6 py-3 rounded-2xl">確認</button>
+        </div>
+        <p id="pinError" class="text-red-500 font-bold hidden">PIN 錯了，請再試一次。</p>
+        <p class="text-stone-400 text-sm mt-2">預設 PIN：<code class="bg-stone-100 px-2 py-1 rounded">7444</code></p>
+      </div>
+
+      <!-- Teacher panel -->
+      <div id="teacherPanel" class="hidden">
+        <p class="text-green-600 font-extrabold mb-4"><i class="fa-solid fa-check-circle mr-1"></i>已解鎖</p>
+
+        <div class="space-y-4">
+          <!-- Edit who -->
+          <div>
+            <h3 class="font-extrabold text-stone-700 mb-2">👤 主角選項</h3>
+            <div id="edit-who" class="space-y-2"></div>
+          </div>
+          <!-- Edit act -->
+          <div>
+            <h3 class="font-extrabold text-stone-700 mb-2">🎯 活動選項</h3>
+            <div id="edit-act" class="space-y-2"></div>
+          </div>
+          <!-- Edit style -->
+          <div>
+            <h3 class="font-extrabold text-stone-700 mb-2">🎨 畫風選項</h3>
+            <div id="edit-style" class="space-y-2"></div>
+          </div>
+          <!-- History -->
+          <div>
+            <h3 class="font-extrabold text-stone-700 mb-2">📋 歷史記錄</h3>
+            <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+            <button onclick="clearHistory()" class="mt-2 text-sm text-red-500 font-bold underline">清除全部歷史</button>
+          </div>
+          <!-- Change PIN -->
+          <div class="border-t-2 border-stone-200 pt-4">
+            <h3 class="font-extrabold text-stone-700 mb-2">🔑 更改 PIN</h3>
+            <div class="flex gap-2">
+              <input type="password" id="newPinInput" maxlength="4" pattern="[0-9]*" inputmode="numeric"
+                class="flex-1 text-center text-xl font-bold border-3 border-stone-300 rounded-2xl px-4 py-2 focus:border-orange-400 focus:outline-none"
+                placeholder="新 PIN（四位數）">
+              <button onclick="changePin()" class="bg-orange-500 text-white font-extrabold px-5 py-2 rounded-2xl">更改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
-const data = {
-  who: [
-    { id:'family', zh:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
-    { id:'kids', zh:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
-    { id:'rabbit', zh:'🐇 兔仔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
-    { id:'fairy', zh:'👸 仙女', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
-    { id:'cat', zh:'🐱 小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
-    { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' }
-  ],
-  act: [
-    { id:'moon', zh:'🌝 望月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
-    { id:'lantern', zh:'🏮 拎燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
-    { id:'cake', zh:'🥮 食月餅', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
-    { id:'sky', zh:'🎈 放天燈', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
-    { id:'garden', zh:'🌸 花園行', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
-    { id:'boat', zh:'🌊 湖邊坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' }
-  ],
-  style: [
-    { id:'cartoon', zh:'😊 可愛卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
-    { id:'picturebook', zh:'🎨 圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
-    { id:'paper', zh:'✂️ 剪紙畫', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
-    { id:'night', zh:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
-  ],
-  color: [
-    { id:'gold', zh:'🌝 金黃（月亮）', en:'golden yellow moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
-    { id:'red', zh:'🏮 紅色（燈籠）', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
-    { id:'purple', zh:'🌌 紫色（夜空）', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
-    { id:'osmanthus', zh:'🌼 黃色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
-  ]
-};
-
+// ── Data ──────────────────────────────────────────────────────────────────
 const NEG_ZH = '唔好恐怖、唔好黑暗、唔好複雜字、唔好模糊、唔好有浮水印';
 const NEG_EN = 'no horror, no dark scary mood, no messy text, no blurry faces, no watermark, no crowded tiny details';
+
+const DEFAULT_PIN = '7444';
+const PIN_KEY = 'midautumn_pin';
 
 let step = 1;
 const total = 5;
 let tab = 'zh';
 let sel = { who:null, act:null, style:null, color:null };
+let generated = false;
 let bigMode = false;
+let soundOn = true;
+let speakingId = null;
+let hasZhVoice = false;
+let pendingKey = null;   // key awaiting confirm in normal mode
+let pendingId = null;
 
 // ── Voice ────────────────────────────────────────────────────────────────
+function detectVoice() {
+  const list = window.speechSynthesis?.getVoices() || [];
+  hasZhVoice = list.some(v => v.lang.startsWith('zh'));
+}
 function getVoice() {
   const list = window.speechSynthesis?.getVoices() || [];
   return list.find(v => v.lang.startsWith('zh')) || list[0] || null;
@@ -237,18 +348,39 @@ function speak(text, btnEl) {
   const v = getVoice();
   if (v) u.voice = v;
   u.onend = u.onerror = () => {
-    if (btnEl) btnEl.classList.remove('speaking');
+    if (speakingId === btnEl) {
+      speakingId = null;
+      btnEl?.classList.remove('speaking');
+    }
   };
+  speakingId = btnEl;
   if (btnEl) btnEl.classList.add('speaking');
   window.speechSynthesis.speak(u);
 }
+// Speak helper for picking feedback — reads selected name
+function speakChoice(text) {
+  if (!soundOn) return;
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance('你揀咗' + text);
+  u.lang = 'zh-HK';
+  u.rate = 0.85;
+  const v = getVoice();
+  if (v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
 if (window.speechSynthesis) {
-  window.speechSynthesis.getVoices(); // prime voices list
-  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    detectVoice();
+    renderAll();
+  };
+  window.speechSynthesis.getVoices();
+  setTimeout(detectVoice, 500);
 }
 
 // ── Sound ─────────────────────────────────────────────────────────────────
 function playChime() {
+  if (!soundOn) return;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const notes = [523, 659, 784, 1047];
@@ -264,84 +396,90 @@ function playChime() {
     });
   } catch(e) {}
 }
-
-// ── Picked strip (cross-step selection visibility) ──────────────────────
-function renderPickedStrip(stripId, s) {
-  const el = document.getElementById(stripId);
-  if (!el) return;
-  if (!s) { el.innerHTML = ''; return; }
-  el.innerHTML = `<span class="step-picked-chip">
-    <img src="${s.img}" alt="${s.zh}">
-    ${s.zh}
-  </span>`;
+function toggleSound() {
+  soundOn = !soundOn;
+  const icon = document.getElementById('soundIcon');
+  icon.className = soundOn ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+  document.getElementById('soundToggle').classList.toggle('bg-orange-100', !soundOn);
+  document.getElementById('soundToggle').classList.toggle('text-orange-700', !soundOn);
 }
 
-// ── Render: who / act ─────────────────────────────────────────────────────
-function renderWhoAct(id, list, key) {
-  const box = document.getElementById(id);
-  box.innerHTML = list.map(item => `
-    <div class="card rounded-3xl p-3 text-center relative ${sel[key]?.id===item.id?'active':''}" style="min-height:170px">
-      <button class="speak-btn" aria-label="朗讀：${item.zh}"
-              onclick="event.stopPropagation();speak('${item.zh}', this)">
-        <i class="fa-solid fa-volume-high"></i>
+// ── Render helpers ────────────────────────────────────────────────────────
+function getDataList(key) {
+  if (key === 'who') return data.who;
+  if (key === 'act') return data.act;
+  if (key === 'style') return data.style;
+  if (key === 'color') return data.color;
+  return [];
+}
+
+function renderCard(item, key) {
+  const isActive = sel[key]?.id === item.id;
+  const isConfirming = !bigMode && pendingKey === key && pendingId === item.id;
+  const voiceClass = !hasZhVoice ? 'no-voice' : '';
+  const voiceTitle = !hasZhVoice ? '此裝置無粵語語音' : '朗讀';
+  const voiceIcon = !hasZhVoice ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+  const cardClass = isConfirming ? 'confirming' : isActive ? 'active' : '';
+  const flashClass = isConfirming ? 'just-picked' : '';
+
+  // Color cards: use CSS gradient, no image
+  if (key === 'color') {
+    const css = item.css || '';
+    return `
+      <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}" style="min-height:170px;background:${css};background-size:cover">
+        <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${item.zh}', this)" title="${voiceTitle}">
+          <i class="${voiceIcon}"></i>
+        </button>
+        <div class="w-full h-full flex flex-col items-center justify-center" onclick="pick('${key}','${item.id}')">
+          <span class="card-text text-lg font-extrabold mt-10 leading-tight" style="text-shadow:0 1px 4px rgba(0,0,0,.5);color:white">${item.zh}</span>
+        </div>
+        <div class="confirm-badge"><i class="fa-solid fa-check"></i></div>
+      </div>`;
+  }
+
+  // Normal cards with image
+  const imgStyle = key === 'style' ? 'width:110px;height:80px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;' : 'width:90px;height:90px;object-fit:cover;border-radius:16px;border:3px solid #fde68a;';
+  return `
+    <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}" style="min-height:170px">
+      <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${item.zh}', this)" title="${voiceTitle}">
+        <i class="${voiceIcon}"></i>
       </button>
-      <button class="w-full h-full flex flex-col items-center justify-center gap-1"
-              onclick="doPick('${key}','${item.id}')">
-        <img src="${item.img}" alt="${item.zh}" style="width:90px;height:90px;object-fit:cover;border-radius:16px;border:3px solid #fde68a;" loading="lazy">
+      <button class="w-full h-full flex flex-col items-center justify-center gap-1" onclick="pick('${key}','${item.id}')">
+        <img src="${item.img}" alt="${item.zh}" style="${imgStyle}" loading="lazy">
         <span class="card-text text-lg font-extrabold mt-1 leading-tight">${item.zh}</span>
       </button>
-    </div>
-  `).join('');
+      <div class="confirm-badge"><i class="fa-solid fa-check"></i></div>
+    </div>`;
 }
 
-// ── Render: style ─────────────────────────────────────────────────────────
+// ── Render full grids ─────────────────────────────────────────────────────
+function renderWhoAct(id, list, key) {
+  document.getElementById(id).innerHTML = list.map(item => renderCard(item, key)).join('');
+}
 function renderStyle() {
-  const box = document.getElementById('style-grid');
-  box.innerHTML = data.style.map(item => `
-    <div class="card rounded-3xl p-3 text-center relative ${sel.style?.id===item.id?'active':''}" style="min-height:170px">
-      <button class="speak-btn" aria-label="朗讀：${item.zh}"
-              onclick="event.stopPropagation();speak('${item.zh}', this)">
-        <i class="fa-solid fa-volume-high"></i>
-      </button>
-      <button class="w-full h-full flex flex-col items-center justify-center gap-2"
-              onclick="doPick('style','${item.id}')">
-        <img src="${item.img}" alt="${item.zh}" style="width:110px;height:80px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;" loading="lazy">
-        <span class="card-text text-lg font-extrabold">${item.zh}</span>
-      </button>
-    </div>
-  `).join('');
+  document.getElementById('style-grid').innerHTML = data.style.map(item => renderCard(item, 'style')).join('');
 }
-
-// ── Render: color ─────────────────────────────────────────────────────────
 function renderColor() {
-  const box = document.getElementById('color-grid');
-  box.innerHTML = data.color.map(item => `
-    <div class="card rounded-3xl p-3 text-center relative ${sel.color?.id===item.id?'active':''}" style="min-height:170px">
-      <button class="speak-btn" aria-label="朗讀：${item.zh}"
-              onclick="event.stopPropagation();speak('${item.zh}', this)">
-        <i class="fa-solid fa-volume-high"></i>
-      </button>
-      <button class="w-full h-full flex flex-col items-center justify-center gap-2"
-              onclick="doPick('color','${item.id}')">
-        <img src="${item.img}" alt="${item.zh}" style="width:140px;height:70px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;" loading="lazy">
-        <span class="card-text text-lg font-extrabold">${item.zh}</span>
-      </button>
-    </div>
-  `).join('');
+  document.getElementById('color-grid').innerHTML = data.color.map(item => renderCard(item, 'color')).join('');
 }
 
 // ── Summary ───────────────────────────────────────────────────────────────
+let _prevSel = { who:null, act:null, style:null, color:null };
 function renderSummary() {
   const stepNames = { who:'👤 主角', act:'🎯 活動', style:'🎨 畫風', color:'🌙 顏色' };
   const summaryList = document.getElementById('summary-list');
   summaryList.innerHTML = ['who','act','style','color'].map(key => {
     const s = sel[key];
     const done = s !== null;
-    const imgTag = done && s.img
-      ? `<img src="${s.img}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;border:2px solid #fde68a;flex-shrink:0" alt="${s.zh}">`
-      : `<div style="width:60px;height:60px;background:#fde68a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0" aria-hidden="true">❓</div>`;
+    const wasUpdated = done && _prevSel[key]?.id !== s.id;
+    const flashClass = wasUpdated ? 'summary-row-flash' : '';
+    const imgTag = done
+      ? (key === 'color'
+          ? `<div style="width:60px;height:60px;border-radius:12px;border:2px solid #fde68a;flex-shrink:0;background:${s.css || '#fde68a'};background-size:cover"></div>`
+          : `<img src="${s.img}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;border:2px solid #fde68a;flex-shrink:0">`)
+      : `<div style="width:60px;height:60px;background:#fde68a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">❓</div>`;
     return `
-      <div class="flex items-center gap-4 bg-white rounded-2xl p-3 border-2 ${done?'border-orange-200':'border-stone-300'}">
+      <div class="flex items-center gap-4 bg-white rounded-2xl p-3 border-2 ${done?'border-orange-200':'border-stone-300'} ${flashClass}" id="sum-${key}">
         ${imgTag}
         <div class="flex-1">
           <div class="text-sm font-bold text-stone-400 uppercase tracking-wide">${stepNames[key]}</div>
@@ -350,9 +488,10 @@ function renderSummary() {
         <button onclick="goToStep('${key}')" class="flex-shrink-0 bg-orange-100 text-orange-700 font-extrabold px-4 py-2 rounded-2xl border-2 border-orange-300 text-sm">
           ${done?'✏️ 改':'➕ 揀'}
         </button>
-      </div>
-    `;
+      </div>`;
   }).join('');
+  // Snapshot for next comparison
+  _prevSel = JSON.parse(JSON.stringify(sel));
 }
 
 // ── Main render ───────────────────────────────────────────────────────────
@@ -363,20 +502,18 @@ function renderAll() {
   renderColor();
   renderSummary();
 
-  // Picked strips — always visible at top of each step
-  renderPickedStrip('picked-strip-1', sel.who);
-  renderPickedStrip('picked-strip-2', sel.act);
-  renderPickedStrip('picked-strip-3', sel.style);
-  renderPickedStrip('picked-strip-4', sel.color);
-
   document.getElementById('dots').innerHTML = Array.from({length:total}, (_,i)=>`
-    <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'}"
-          aria-hidden="true"></span>
+    <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'} ${i+1>step?'opacity:40':''}"></span>
   `).join('');
   document.getElementById('stepLabel').textContent = `第 ${step} 步 / 共 ${total} 步`;
   document.querySelectorAll('.step-panel').forEach((el,i)=> el.classList.toggle('active', i+1===step));
   document.getElementById('prevBtn').classList.toggle('invisible', step===1);
 
+  // Show confirm hint when there's a pending selection in normal mode
+  const showHint = !bigMode && pendingKey !== null && step < 5;
+  document.getElementById('confirmHint').classList.toggle('hidden', !showHint);
+
+  // nextBtn logic
   const nextWrap = document.getElementById('nextWrap');
   if (step === 4) {
     nextWrap.innerHTML = `<button onclick="go(1)" class="bg-orange-500 text-white font-extrabold text-lg px-8 py-4 rounded-3xl shadow-lg">
@@ -391,42 +528,68 @@ function renderAll() {
   }
 }
 
-function doPick(key, id) {
-  sel[key] = (key==='color'?data.color:key==='who'?data.who:key==='act'?data.act:data.style).find(x=>x.id===id);
-  playChime();
-  renderAll();
-  if (step < 4) {
-    clearTimeout(window._advTimer);
-    window._advTimer = setTimeout(() => {
-      step = step + 1;
-      renderAll();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Move keyboard focus to new panel heading
-      const headings = document.querySelectorAll('.step-panel h2');
-      if (headings[step-1]) headings[step-1].focus();
-    }, 600);
-  }
-}
-
+// ── Navigation ────────────────────────────────────────────────────────────
 function go(d) {
   const next = step + d;
   if (next < 1 || next > total) return;
   step = next;
   renderAll();
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  const headings = document.querySelectorAll('.step-panel h2');
-  if (headings[step-1]) headings[step-1].focus();
 }
-
 function goToStep(key) {
   const map = { who:1, act:2, style:3, color:4 };
   step = map[key] || 1;
   renderAll();
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  const headings = document.querySelectorAll('.step-panel h2');
-  if (headings[step-1]) headings[step-1].focus();
 }
 
+// ── Pick logic ────────────────────────────────────────────────────────────
+// P0: Normal mode → show confirm badge + "確認" button, no auto-advance
+//     Big mode    → instant pick + auto-advance after 600ms
+function pick(key, id) {
+  const list = getDataList(key);
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  if (bigMode) {
+    // Big mode: instant pick + auto-advance
+    sel[key] = item;
+    playChime();
+    speakChoice(item.zh);
+    generated = false;
+    renderAll();
+    if (step < 4) {
+      clearTimeout(window._advTimer);
+      window._advTimer = setTimeout(() => {
+        step = step + 1;
+        renderAll();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 600);
+    }
+  } else {
+    // Normal mode: pending confirm
+    if (pendingKey === key && pendingId === id) {
+      // Second tap → confirm
+      sel[key] = item;
+      pendingKey = null;
+      pendingId = null;
+      playChime();
+      speakChoice(item.zh);
+      generated = false;
+      renderAll();
+    } else {
+      // First tap → show confirming state
+      pendingKey = key;
+      pendingId = id;
+      renderAll();
+      // Highlight the card briefly
+      const cards = document.querySelectorAll(`.step-panel.active .card`);
+      cards.forEach(c => c.classList.remove('just-picked'));
+    }
+  }
+}
+
+// ── Tabs & prompt ─────────────────────────────────────────────────────────
 function setTab(t) {
   tab = t;
   document.getElementById('outZh').classList.toggle('hidden', t!=='zh');
@@ -471,12 +634,13 @@ function updatePrompt() {
 }
 
 function generatePrompt() {
+  generated = true;
   updatePrompt();
   playChime();
   const t = document.getElementById('toast');
   t.textContent = '🌕 提詞已生成！';
   t.style.opacity = 1;
-  setTimeout(() => { t.style.opacity = 0; t.textContent = '已複製！'; }, 2000);
+  setTimeout(() => t.style.opacity = 0, 2000);
 }
 
 function copyPrompt() {
@@ -491,21 +655,27 @@ function copyPrompt() {
   });
 }
 
+// ── Randomize & Reset ─────────────────────────────────────────────────────
 function randomizeAll() {
   const pickRand = arr => arr[Math.floor(Math.random()*arr.length)];
   sel.who = pickRand(data.who);
   sel.act = pickRand(data.act);
   sel.style = pickRand(data.style);
   sel.color = pickRand(data.color);
+  pendingKey = null;
+  pendingId = null;
+  generated = false;
   step = 5;
   renderAll();
-  generatePrompt(); // auto-generate on random
   playChime();
 }
 
 function resetAll() {
   sel = { who:null, act:null, style:null, color:null };
   step = 1;
+  generated = false;
+  pendingKey = null;
+  pendingId = null;
   window.speechSynthesis?.cancel();
   renderAll();
 }
@@ -517,8 +687,156 @@ function toggleBigMode() {
   btn.classList.toggle('bg-orange-100', bigMode);
   btn.classList.toggle('border-orange-400', bigMode);
   btn.classList.toggle('text-orange-700', bigMode);
+  // Clear pending in normal mode when switching
+  if (bigMode) { pendingKey = null; pendingId = null; }
+  renderAll();
 }
 
+// ── Teacher Mode ───────────────────────────────────────────────────────────
+function openTeacherMode() {
+  document.getElementById('teacherModal').classList.add('open');
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinError').classList.add('hidden');
+  document.getElementById('pinGate').classList.remove('hidden');
+  document.getElementById('teacherPanel').classList.add('hidden');
+  renderTeacherPanel();
+  document.getElementById('pinInput').focus();
+}
+function closeTeacherMode() {
+  document.getElementById('teacherModal').classList.remove('open');
+}
+function checkPin() {
+  const stored = localStorage.getItem(PIN_KEY) || DEFAULT_PIN;
+  const input = document.getElementById('pinInput').value.trim();
+  if (input === stored) {
+    document.getElementById('pinGate').classList.add('hidden');
+    document.getElementById('teacherPanel').classList.remove('hidden');
+  } else {
+    document.getElementById('pinError').classList.remove('hidden');
+    document.getElementById('pinInput').value = '';
+  }
+}
+function changePin() {
+  const np = document.getElementById('newPinInput').value.trim();
+  if (np.length !== 4 || !/^\d+$/.test(np)) {
+    showToast('PIN 必須係四位數字', 'bg-red-500');
+    return;
+  }
+  localStorage.setItem(PIN_KEY, np);
+  document.getElementById('newPinInput').value = '';
+  showToast('PIN 已更改', 'bg-green-500');
+}
+
+function renderTeacherPanel() {
+  renderTeacherList('edit-who', data.who, 'who');
+  renderTeacherList('edit-act', data.act, 'act');
+  renderTeacherList('edit-style', data.style, 'style');
+  renderHistory();
+}
+function renderTeacherList(elId, list, key) {
+  const box = document.getElementById(elId);
+  box.innerHTML = list.map((item, i) => `
+    <div class="flex gap-2 items-center">
+      <input type="text" value="${item.zh}"
+        class="flex-1 border-2 border-stone-200 rounded-xl px-3 py-1 text-sm font-semibold focus:border-orange-400 focus:outline-none"
+        onchange="data.${key}[${i}].zh=this.value;renderTeacherPanel();renderAll()">
+      <input type="text" value="${item.en}"
+        class="flex-1 border-2 border-stone-200 rounded-xl px-3 py-1 text-sm focus:border-orange-400 focus:outline-none"
+        onchange="data.${key}[${i}].en=this.value">
+      <button onclick="deleteTeacherItem('${key}',${i})" class="text-red-400 hover:text-red-600 font-bold px-2" title="刪除">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>`).join('');
+  box.innerHTML += `
+    <button onclick="addTeacherItem('${key}')" class="text-sm text-orange-600 font-bold mt-1 underline">
+      <i class="fa-solid fa-plus mr-1"></i>新增選項
+    </button>`;
+}
+function deleteTeacherItem(key, idx) {
+  if (data[key].length <= 2) { showToast('起碼要有 2 個選項', 'bg-red-500'); return; }
+  data[key].splice(idx, 1);
+  renderTeacherPanel();
+  renderAll();
+}
+function addTeacherItem(key) {
+  const newId = 'custom_' + Date.now();
+  const newZh = key === 'who' ? '新主角' : key === 'act' ? '新活動' : key === 'style' ? '新畫風' : '新顏色';
+  data[key].push({ id: newId, zh: newZh, en: 'new option', img: 'img/who-kids.jpg', css: '' });
+  renderTeacherPanel();
+  renderAll();
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+const HISTORY_KEY = 'midautumn_history';
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveHistory(arr) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 20)));
+}
+function saveToHistory() {
+  if (!sel.who) { showToast('未揀任何選項', 'bg-red-500'); return; }
+  const rec = {
+    ts: new Date().toISOString(),
+    who: sel.who.zh,
+    act: sel.act?.zh || '',
+    style: sel.style?.zh || '',
+    color: sel.color?.zh || '',
+    zh: document.getElementById('outZh').textContent,
+    en: document.getElementById('outEn').textContent
+  };
+  const h = getHistory();
+  h.unshift(rec);
+  saveHistory(h);
+  showToast('已儲存到歷史', 'bg-green-500');
+  renderHistory();
+}
+function renderHistory() {
+  const box = document.getElementById('history-list');
+  const h = getHistory();
+  if (!h.length) { box.innerHTML = '<p class="text-stone-400 text-sm">暫時未有任何記錄。</p>'; return; }
+  box.innerHTML = h.map((r, i) => `
+    <div class="bg-stone-50 rounded-xl p-2 text-sm border border-stone-200">
+      <div class="flex justify-between items-start">
+        <div class="font-bold text-stone-600">${new Date(r.ts).toLocaleString('zh-HK')}</div>
+        <button onclick="loadHistory(${i})" class="text-orange-500 font-bold text-xs underline">讀取</button>
+      </div>
+      <div class="text-stone-500 mt-1">${r.who}${r.act ? ' · ' + r.act : ''}</div>
+    </div>`).join('');
+}
+function loadHistory(idx) {
+  const h = getHistory();
+  const r = h[idx];
+  if (!r) return;
+  const find = (arr, zh) => arr.find(x => x.zh === zh);
+  sel.who = find(data.who, r.who) || sel.who;
+  sel.act = r.act ? (find(data.act, r.act) || null) : null;
+  sel.style = r.style ? (find(data.style, r.style) || null) : null;
+  sel.color = r.color ? (find(data.color, r.color) || null) : null;
+  pendingKey = null; pendingId = null;
+  generated = false;
+  step = 5;
+  renderAll();
+  closeTeacherMode();
+  showToast('已讀取歷史記錄', 'bg-blue-500');
+}
+function clearHistory() {
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+  showToast('歷史已清除', 'bg-stone-500');
+}
+
+// ── Toast helper ───────────────────────────────────────────────────────────
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.className = 'fixed top-20 left-1/2 -translate-x-1/2 text-white font-extrabold px-6 py-3 rounded-full opacity-0 pointer-events-none transition z-50' + (color ? ' ' + color : ' bg-orange-600');
+  t.textContent = msg;
+  t.style.opacity = 1;
+  setTimeout(() => t.style.opacity = 0, 2000);
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────
 renderAll();
 </script>
 </body>
