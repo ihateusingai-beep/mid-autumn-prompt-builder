@@ -560,22 +560,38 @@ function renderAll() {
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────
+// Commit green "pending" card into real selection (fixes Next/確認選擇 dropping pick)
+function commitPending() {
+  if (!pendingKey || !pendingId) return false;
+  const item = getDataList(pendingKey).find(x => x.id === pendingId);
+  if (!item) { pendingKey = null; pendingId = null; return false; }
+  sel[pendingKey] = item;
+  pendingKey = null;
+  pendingId = null;
+  generated = false;
+  return true;
+}
+
 function go(d) {
+  if (d > 0) commitPending(); // 「下一頁 / 確認選擇」= 確認而家張卡
   const next = step + d;
   if (next < 1 || next > total) return;
   step = next;
   renderAll();
+  updatePrompt();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function goToStep(key) {
+  commitPending();
   const map = { who:1, act:2, style:3, color:4 };
   step = map[key] || 1;
   renderAll();
+  updatePrompt();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── Pick logic ────────────────────────────────────────────────────────────
-// P0: Normal mode → show confirm badge + "確認" button, no auto-advance
+// P0: Normal mode → 1st tap pending, 2nd tap OR Next/確認選擇 commits
 //     Big mode    → instant pick + auto-advance after 600ms
 function pick(key, id) {
   const list = getDataList(key);
@@ -585,15 +601,19 @@ function pick(key, id) {
   if (bigMode) {
     // Big mode: instant pick + auto-advance
     sel[key] = item;
+    pendingKey = null;
+    pendingId = null;
     playChime();
     speakChoice(item.zh);
     generated = false;
     renderAll();
+    updatePrompt();
     if (step < 4) {
       clearTimeout(window._advTimer);
       window._advTimer = setTimeout(() => {
         step = step + 1;
         renderAll();
+        updatePrompt();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 600);
     }
@@ -608,14 +628,12 @@ function pick(key, id) {
       speakChoice(item.zh);
       generated = false;
       renderAll();
+      updatePrompt();
     } else {
-      // First tap → show confirming state
+      // First tap → show confirming state (not yet saved until 2nd tap or Next)
       pendingKey = key;
       pendingId = id;
       renderAll();
-      // Highlight the card briefly
-      const cards = document.querySelectorAll(`.step-panel.active .card`);
-      cards.forEach(c => c.classList.remove('just-picked'));
     }
   }
 }
@@ -635,27 +653,27 @@ function setTab(t) {
 
 function updatePrompt() {
   const who = sel.who, act = sel.act, st = sel.style, col = sel.color;
-  if (!who) {
-    document.getElementById('outZh').textContent = '請先完成所有選擇。';
-    document.getElementById('outEn').textContent = 'Please complete all steps first.';
+  if (!who && !act && !st && !col) {
+    document.getElementById('outZh').textContent = '請先撳圖揀主角、活動、畫風、顏色。';
+    document.getElementById('outEn').textContent = 'Please pick who / action / style / color first.';
     return;
   }
   const zh = [
     '一張開心、容易睇嘅中秋節圖。',
-    `主角係${who.zh}。`,
-    act ? `佢哋喺度${act.zh}。` : '',
-    st ? `畫風係${st.zh}。` : '',
-    col ? `顏色係${col.zh}。` : '',
+    who ? `主角係${who.zh}。` : '主角：未揀。',
+    act ? `佢哋喺度${act.zh}。` : '活動：未揀。',
+    st ? `畫風係${st.zh}。` : '畫風：未揀。',
+    col ? `顏色係${col.zh}。` : '顏色：未揀。',
     '畫面要大、清楚、溫暖、適合小朋友。',
     '負面：' + NEG_ZH
   ].filter(Boolean).join('');
 
   const en = [
     'A joyful Mid-Autumn Festival scene that is easy to understand.',
-    `Main subject: ${who.en}.`,
-    act ? `They are ${act.en}.` : '',
-    st ? `Art style: ${st.en}.` : '',
-    col ? `Colors: ${col.en}.` : '',
+    who ? `Main subject: ${who.en}.` : 'Main subject: not chosen.',
+    act ? `They are ${act.en}.` : 'Action: not chosen.',
+    st ? `Art style: ${st.en}.` : 'Art style: not chosen.',
+    col ? `Colors: ${col.en}.` : 'Colors: not chosen.',
     'Big clear shapes, warm and safe for children, simple composition, centered subject.',
     'Negative prompt: ' + NEG_EN
   ].filter(Boolean).join(' ');
@@ -665,13 +683,17 @@ function updatePrompt() {
 }
 
 function generatePrompt() {
+  commitPending();
+  renderAll();
+  if (!sel.who || !sel.act || !sel.style || !sel.color) {
+    updatePrompt();
+    showToast('未揀齊四項，請繼續揀', 'bg-red-500');
+    return;
+  }
   generated = true;
   updatePrompt();
   playChime();
-  const t = document.getElementById('toast');
-  t.textContent = '🌕 提詞已生成！';
-  t.style.opacity = 1;
-  setTimeout(() => t.style.opacity = 0, 2000);
+  showToast('🌕 提詞已生成！', 'bg-green-500');
 }
 
 function copyPrompt() {
@@ -695,10 +717,12 @@ function randomizeAll() {
   sel.color = pickRand(data.color);
   pendingKey = null;
   pendingId = null;
-  generated = false;
+  generated = true;
   step = 5;
   renderAll();
+  updatePrompt();
   playChime();
+  showToast('🌕 隨機提詞已生成！', 'bg-green-500');
 }
 
 function resetAll() {
