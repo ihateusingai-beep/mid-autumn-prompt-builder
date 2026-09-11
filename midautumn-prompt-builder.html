@@ -197,6 +197,19 @@
       <h2 class="text-3xl font-extrabold mb-2">✅ 確認你嘅選擇</h2>
       <p class="text-lg text-stone-600 mb-5">晒下你揀啲乜？搞掂就撳「生成提詞」！</p>
       <div class="space-y-3" id="summary-list"></div>
+
+      <!-- Optional student name → affects prompt -->
+      <div class="mt-5 p-4 bg-white rounded-3xl border-4 border-amber-200">
+        <label for="studentName" class="block text-lg font-extrabold text-stone-700 mb-2">
+          ✏️ 學生名字 <span class="text-stone-400 font-bold text-base">（可選）</span>
+        </label>
+        <input id="studentName" type="text" maxlength="20" autocomplete="off"
+          placeholder="例如：小明（唔填都得）"
+          class="w-full text-xl font-extrabold border-4 border-orange-200 rounded-2xl px-4 py-3 focus:border-orange-500 focus:outline-none"
+          oninput="onStudentNameInput()">
+        <p class="text-sm text-stone-500 mt-2 font-semibold">填咗會寫入提詞；唔填就照常生成。</p>
+      </div>
+
       <div class="mt-6 p-4 bg-orange-50 rounded-3xl border-4 border-orange-200">
         <p class="text-sm text-stone-500 mb-3 font-bold"><i class="fa-solid fa-magic mr-1"></i>按呢個掣就會生成中秋圖提詞：</p>
         <button onclick="generatePrompt()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-xl py-5 rounded-3xl shadow-xl">
@@ -651,16 +664,43 @@ function setTab(t) {
     : 'px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm';
 }
 
+function getStudentName() {
+  const el = document.getElementById('studentName');
+  return (el?.value || '').trim().slice(0, 20);
+}
+function onStudentNameInput() {
+  // live refresh prompt if already has picks / generated
+  if (sel.who || sel.act || sel.style || sel.color || generated) updatePrompt();
+}
+
 function updatePrompt() {
   const who = sel.who, act = sel.act, st = sel.style, col = sel.color;
+  const name = getStudentName();
   if (!who && !act && !st && !col) {
     document.getElementById('outZh').textContent = '請先撳圖揀主角、活動、畫風、顏色。';
     document.getElementById('outEn').textContent = 'Please pick who / action / style / color first.';
     return;
   }
+
+  // Name is optional: only inject when filled
+  let whoZh = who ? `主角係${who.zh}。` : '主角：未揀。';
+  let whoEn = who ? `Main subject: ${who.en}.` : 'Main subject: not chosen.';
+  if (name && who) {
+    if (who.id === 'me') {
+      whoZh = `主角係學生${name}（我自己）。`;
+      whoEn = `Main subject: a student character named ${name} (myself).`;
+    } else {
+      whoZh = `主角係${who.zh}，學生名叫${name}。`;
+      whoEn = `Main subject: ${who.en}, student name ${name}.`;
+    }
+  } else if (name && !who) {
+    whoZh = `學生名叫${name}。主角：未揀。`;
+    whoEn = `Student name: ${name}. Main subject: not chosen.`;
+  }
+
   const zh = [
     '一張開心、容易睇嘅中秋節圖。',
-    who ? `主角係${who.zh}。` : '主角：未揀。',
+    whoZh,
     act ? `佢哋喺度${act.zh}。` : '活動：未揀。',
     st ? `畫風係${st.zh}。` : '畫風：未揀。',
     col ? `顏色係${col.zh}。` : '顏色：未揀。',
@@ -670,7 +710,7 @@ function updatePrompt() {
 
   const en = [
     'A joyful Mid-Autumn Festival scene that is easy to understand.',
-    who ? `Main subject: ${who.en}.` : 'Main subject: not chosen.',
+    whoEn,
     act ? `They are ${act.en}.` : 'Action: not chosen.',
     st ? `Art style: ${st.en}.` : 'Art style: not chosen.',
     col ? `Colors: ${col.en}.` : 'Colors: not chosen.',
@@ -731,8 +771,11 @@ function resetAll() {
   generated = false;
   pendingKey = null;
   pendingId = null;
+  const nameEl = document.getElementById('studentName');
+  if (nameEl) nameEl.value = '';
   window.speechSynthesis?.cancel();
   renderAll();
+  updatePrompt();
 }
 
 function toggleBigMode() {
@@ -834,6 +877,7 @@ function saveToHistory() {
   if (!sel.who) { showToast('未揀任何選項', 'bg-red-500'); return; }
   const rec = {
     ts: new Date().toISOString(),
+    name: getStudentName(),
     who: sel.who.zh,
     act: sel.act?.zh || '',
     style: sel.style?.zh || '',
@@ -857,7 +901,7 @@ function renderHistory() {
         <div class="font-bold text-stone-600">${new Date(r.ts).toLocaleString('zh-HK')}</div>
         <button onclick="loadHistory(${i})" class="text-orange-500 font-bold text-xs underline">讀取</button>
       </div>
-      <div class="text-stone-500 mt-1">${r.who}${r.act ? ' · ' + r.act : ''}</div>
+      <div class="text-stone-500 mt-1">${r.name ? r.name + ' · ' : ''}${r.who}${r.act ? ' · ' + r.act : ''}</div>
     </div>`).join('');
 }
 function loadHistory(idx) {
@@ -870,9 +914,12 @@ function loadHistory(idx) {
   sel.style = r.style ? (find(data.style, r.style) || null) : null;
   sel.color = r.color ? (find(data.color, r.color) || null) : null;
   pendingKey = null; pendingId = null;
-  generated = false;
+  generated = true;
   step = 5;
+  const nameEl = document.getElementById('studentName');
+  if (nameEl) nameEl.value = r.name || '';
   renderAll();
+  updatePrompt();
   closeTeacherMode();
   showToast('已讀取歷史記錄', 'bg-blue-500');
 }
