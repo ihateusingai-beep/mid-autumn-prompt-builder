@@ -312,6 +312,37 @@
 
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────
+const data = {
+  who: [
+    { id:'family', zh:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
+    { id:'kids', zh:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
+    { id:'rabbit', zh:'🐇 兔仔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
+    { id:'fairy', zh:'👸 仙女', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
+    { id:'cat', zh:'🐱 小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
+    { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' }
+  ],
+  act: [
+    { id:'moon', zh:'🌝 望月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
+    { id:'lantern', zh:'🏮 拎燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
+    { id:'cake', zh:'🥮 食月餅', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
+    { id:'sky', zh:'🎈 放天燈', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
+    { id:'garden', zh:'🌸 花園行', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
+    { id:'boat', zh:'🌊 湖邊坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' }
+  ],
+  style: [
+    { id:'cartoon', zh:'😊 可愛卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
+    { id:'picturebook', zh:'🎨 圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
+    { id:'paper', zh:'✂️ 剪紙畫', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
+    { id:'night', zh:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' }
+  ],
+  color: [
+    { id:'gold', zh:'🌝 金黃（月亮）', en:'golden yellow moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
+    { id:'red', zh:'🏮 紅色（燈籠）', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
+    { id:'purple', zh:'🌌 紫色（夜空）', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
+    { id:'osmanthus', zh:'🌼 黃色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' }
+  ]
+};
+
 const NEG_ZH = '唔好恐怖、唔好黑暗、唔好複雜字、唔好模糊、唔好有浮水印';
 const NEG_EN = 'no horror, no dark scary mood, no messy text, no blurry faces, no watermark, no crowded tiny details';
 
