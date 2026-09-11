@@ -400,35 +400,32 @@ function getVoice() {
   const list = window.speechSynthesis?.getVoices() || [];
   return list.find(v => v.lang.startsWith('zh')) || list[0] || null;
 }
+// Unified speak: pass { prefix } to read "你揀咗...", pass btnEl to animate the button
 function speak(text, btnEl) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  const msg = (btnEl === 'choice') ? '你揀咗' + text : text;
+  const u = new SpeechSynthesisUtterance(msg);
   u.lang = 'zh-HK';
   u.rate = 0.85;
   const v = getVoice();
   if (v) u.voice = v;
-  u.onend = u.onerror = () => {
-    if (speakingId === btnEl) {
-      speakingId = null;
-      btnEl?.classList.remove('speaking');
-    }
-  };
-  speakingId = btnEl;
-  if (btnEl) btnEl.classList.add('speaking');
+  if (btnEl && btnEl !== 'choice') {
+    u.onend = u.onerror = () => {
+      if (speakingId === btnEl) {
+        speakingId = null;
+        btnEl?.classList.remove('speaking');
+      }
+    };
+    speakingId = btnEl;
+    btnEl.classList.add('speaking');
+  }
   window.speechSynthesis.speak(u);
 }
-// Speak helper for picking feedback — reads selected name
+// Convenience: plays the "你揀咗..." feedback
 function speakChoice(text) {
   if (!soundOn) return;
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance('你揀咗' + text);
-  u.lang = 'zh-HK';
-  u.rate = 0.85;
-  const v = getVoice();
-  if (v) u.voice = v;
-  window.speechSynthesis.speak(u);
+  speak(text, 'choice');
 }
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => {
@@ -440,10 +437,16 @@ if (window.speechSynthesis) {
 }
 
 // ── Sound ─────────────────────────────────────────────────────────────────
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
 function playChime() {
   if (!soundOn) return;
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
     const notes = [523, 659, 784, 1047];
     notes.forEach((freq, i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
@@ -465,14 +468,24 @@ function toggleSound() {
   document.getElementById('soundToggle').classList.toggle('text-orange-700', !soundOn);
 }
 
-// ── Render helpers ────────────────────────────────────────────────────────
-function getDataList(key) {
-  if (key === 'who') return data.who;
-  if (key === 'act') return data.act;
-  if (key === 'style') return data.style;
-  if (key === 'color') return data.color;
-  return [];
+// ── Keyboard navigation ──────────────────────────────────────────────────
+// Enter/Space on a card = pick; Tab = natural browser nav
+function onCardKey(e, key, id) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    pick(key, id);
+  }
 }
+// Escape closes teacher modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('teacherModal');
+    if (modal?.classList.contains('open')) closeTeacherMode();
+  }
+});
+
+// ── Render helpers ────────────────────────────────────────────────────────
+const getDataList = key => data[key] || [];
 function isMulti(key) { return !!MULTI_KEYS[key]; }
 function getSelItems(key) {
   if (isMulti(key)) return Array.isArray(sel[key]) ? sel[key] : [];
@@ -534,7 +547,9 @@ function renderCard(item, key) {
   if (key === 'color') {
     const css = item.css || '';
     return `
-      <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}" style="min-height:170px;background:${css};background-size:cover">
+      <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}"
+           style="min-height:170px;background:${css};background-size:cover"
+           tabindex="0" onkeydown="onCardKey(event,'${key}','${item.id}')">
         <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${zhSafe}', this)" title="${voiceTitle}">
           <i class="${voiceIcon}"></i>
         </button>
@@ -548,7 +563,9 @@ function renderCard(item, key) {
   // Normal cards with image
   const imgStyle = key === 'style' ? 'width:110px;height:80px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;' : 'width:90px;height:90px;object-fit:cover;border-radius:16px;border:3px solid #fde68a;';
   return `
-    <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}" style="min-height:170px">
+    <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}"
+         style="min-height:170px"
+         tabindex="0" onkeydown="onCardKey(event,'${key}','${item.id}')">
       <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${zhSafe}', this)" title="${voiceTitle}">
         <i class="${voiceIcon}"></i>
       </button>
@@ -561,15 +578,9 @@ function renderCard(item, key) {
 }
 
 // ── Render full grids ─────────────────────────────────────────────────────
-function renderWhoAct(id, list, key) {
-  document.getElementById(id).innerHTML = list.map(item => renderCard(item, key)).join('');
-}
-function renderStyle() {
-  document.getElementById('style-grid').innerHTML = data.style.map(item => renderCard(item, 'style')).join('');
-}
-function renderColor() {
-  document.getElementById('color-grid').innerHTML = data.color.map(item => renderCard(item, 'color')).join('');
-}
+// Single factory: pass the grid element id + the data key
+const renderGrid = (id, key) =>
+  document.getElementById(id).innerHTML = getDataList(key).map(item => renderCard(item, key)).join('');
 
 // ── Summary ───────────────────────────────────────────────────────────────
 let _prevSel = { who:null, act:[], style:null, color:[] };
@@ -628,10 +639,10 @@ function renderSummary() {
 
 // ── Main render ───────────────────────────────────────────────────────────
 function renderAll() {
-  renderWhoAct('who-grid', data.who, 'who');
-  renderWhoAct('act-grid', data.act, 'act');
-  renderStyle();
-  renderColor();
+  renderGrid('who-grid', 'who');
+  renderGrid('act-grid', 'act');
+  renderGrid('style-grid', 'style');
+  renderGrid('color-grid', 'color');
   renderSummary();
   updateMultiHints();
 
@@ -784,16 +795,14 @@ function autoAdvance(key) {
 }
 
 // ── Tabs & prompt ─────────────────────────────────────────────────────────
+const TAB_ACTIVE = 'px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm';
+const TAB_INACTIVE = 'px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm';
 function setTab(t) {
   tab = t;
-  document.getElementById('outZh').classList.toggle('hidden', t!=='zh');
-  document.getElementById('outEn').classList.toggle('hidden', t!=='en');
-  document.getElementById('tabZh').className = t==='zh'
-    ? 'px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm'
-    : 'px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm';
-  document.getElementById('tabEn').className = t==='en'
-    ? 'px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm'
-    : 'px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm';
+  document.getElementById('outZh').classList.toggle('hidden', t !== 'zh');
+  document.getElementById('outEn').classList.toggle('hidden', t !== 'en');
+  document.getElementById('tabZh').className = t === 'zh' ? TAB_ACTIVE : TAB_INACTIVE;
+  document.getElementById('tabEn').className = t === 'en' ? TAB_ACTIVE : TAB_INACTIVE;
 }
 
 function getStudentName() {
@@ -984,10 +993,10 @@ function renderTeacherList(elId, list, key) {
     <div class="flex gap-2 items-center">
       <input type="text" value="${item.zh}"
         class="flex-1 border-2 border-stone-200 rounded-xl px-3 py-1 text-sm font-semibold focus:border-orange-400 focus:outline-none"
-        onchange="data.${key}[${i}].zh=this.value;renderTeacherPanel();renderAll()">
+        data-teach-key="${key}" data-teach-idx="${i}" data-teach-field="zh">
       <input type="text" value="${item.en}"
         class="flex-1 border-2 border-stone-200 rounded-xl px-3 py-1 text-sm focus:border-orange-400 focus:outline-none"
-        onchange="data.${key}[${i}].en=this.value">
+        data-teach-key="${key}" data-teach-idx="${i}" data-teach-field="en">
       <button onclick="deleteTeacherItem('${key}',${i})" class="text-red-400 hover:text-red-600 font-bold px-2" title="刪除">
         <i class="fa-solid fa-trash"></i>
       </button>
@@ -997,6 +1006,15 @@ function renderTeacherList(elId, list, key) {
       <i class="fa-solid fa-plus mr-1"></i>新增選項
     </button>`;
 }
+// Delegate event listeners — no inline onchange, avoids any XSS surface
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (!el.matches('[data-teach-key]')) return;
+  const { teachKey: key, teachIdx: idx, teachField: field } = el.dataset;
+  data[key][Number(idx)][field] = el.value;
+  renderTeacherPanel();
+  renderAll();
+});
 function deleteTeacherItem(key, idx) {
   if (data[key].length <= 2) { showToast('起碼要有 2 個選項', 'bg-red-500'); return; }
   data[key].splice(idx, 1);
@@ -1025,10 +1043,14 @@ function saveToHistory() {
   const rec = {
     ts: new Date().toISOString(),
     name: getStudentName(),
-    who: sel.who.zh,
-    act: selLabel('act'),
-    style: sel.style?.zh || '',
-    color: selLabel('color'),
+    whoId: sel.who.id,
+    whoZh: sel.who.zh,
+    actIds: getSelItems('act').map(x => x.id),
+    actZh: selLabel('act'),
+    styleId: sel.style?.id || null,
+    styleZh: sel.style?.zh || '',
+    colorIds: getSelItems('color').map(x => x.id),
+    colorZh: selLabel('color'),
     zh: document.getElementById('outZh').textContent,
     en: document.getElementById('outEn').textContent
   };
@@ -1048,24 +1070,28 @@ function renderHistory() {
         <div class="font-bold text-stone-600">${new Date(r.ts).toLocaleString('zh-HK')}</div>
         <button onclick="loadHistory(${i})" class="text-orange-500 font-bold text-xs underline">讀取</button>
       </div>
-      <div class="text-stone-500 mt-1">${r.name ? r.name + ' · ' : ''}${r.who}${r.act ? ' · ' + r.act : ''}</div>
+      <div class="text-stone-500 mt-1">${r.name ? r.name + ' · ' : ''}${r.whoZh || r.who || ''}${r.actZh || r.act ? ' · ' + (r.actZh || r.act) : ''}</div>
     </div>`).join('');
 }
 function loadHistory(idx) {
   const h = getHistory();
   const r = h[idx];
   if (!r) return;
-  const find = (arr, zh) => arr.find(x => x.zh === zh);
-  const findMulti = (arr, label) => {
+  // Primary: lookup by stable id; fallback to zh string for legacy records
+  const findById = (arr, id) => id ? arr.find(x => x.id === id) : null;
+  const findByZh = (arr, zh) => zh ? arr.find(x => x.zh === zh) : null;
+  const findMultiIds = (arr, ids) =>
+    (ids || []).map(id => findById(arr, id)).filter(Boolean);
+  const findMultiZh = (arr, label) => {
     if (!label) return [];
-    // support "a、b" multi or legacy single zh
     return String(label).split('、').map(s => s.trim()).filter(Boolean)
-      .map(zh => find(arr, zh)).filter(Boolean);
+      .map(zh => findByZh(arr, zh)).filter(Boolean);
   };
-  sel.who = find(data.who, r.who) || sel.who;
-  sel.act = findMulti(data.act, r.act);
-  sel.style = r.style ? (find(data.style, r.style) || null) : null;
-  sel.color = findMulti(data.color, r.color);
+
+  sel.who = findById(data.who, r.whoId) || findByZh(data.who, r.whoZh) || sel.who;
+  sel.act = r.actIds ? findMultiIds(data.act, r.actIds) : findMultiZh(data.act, r.actZh);
+  sel.style = findById(data.style, r.styleId) || (r.styleZh ? findByZh(data.style, r.styleZh) : null);
+  sel.color = r.colorIds ? findMultiIds(data.color, r.colorIds) : findMultiZh(data.color, r.colorZh);
   pendingKey = null; pendingId = null;
   generated = true;
   step = 5;
