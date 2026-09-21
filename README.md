@@ -8,17 +8,11 @@
 
 ## 🌕 Live Demo
 
-**Status: ⏳ GitHub Pages 等待啟用**
+**Status: ✅ Live since 2026-09-22**
 
-Intended URL: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
+**👉 <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>**
 
-目前回傳 `HTTP 404`。原因係 workflow `.github/workflows/deploy.yml` 雖然就位，但 GitHub repo settings → Pages 尚未指派 environment / source。**啟用步驟(老師 / 維護者)：**
-
-1. 去 <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder/settings/pages>
-2. **Source** 揀 `GitHub Actions`(唔係 `Deploy from a branch`)
-3. 儲存後 1-2 分鐘 deploy 完成,URL 自動生效
-
-啟用後,README 頂呢段會更新做正式 link。
+每次 push `main` 自動 deploy(GitHub Actions `actions/deploy-pages@v4`)。`/` URL 經 `index.html` meta-refresh 跳去 `midautumn-prompt-builder.html`(保留 git history, 0ms redirect hop)。
 
 ---
 
@@ -113,7 +107,6 @@ open midautumn-prompt-builder.html
 - **無 offline-first cache strategy**:第一次 load 要裝晒 22 張 JPG(~6 MB),之後 service worker 冇做,離線 reload 會空白
 - **Mobile keyboard 輸入學生名** 喺細芒(<375px)會擋住「生成」掣,目前要 scroll 一下
 - **多於 5 個學生同時用** localStorage quota 易撞,但呢個 app 設計係 1 部機 1 個老師用,history 共用,唔算 bug
-- **GitHub Pages URL 未啟用**(見頂部 ⏳)— 啟用後即可用
 
 ---
 
@@ -154,17 +147,99 @@ open midautumn-prompt-builder.html
 
 ---
 
-## 🛣 Roadmap(v1.2 餘下 sprints)
+## 🆕 v1.2.2 UX Patch (2026-09-21)
 
-詳細 spec 見 [`SPEC-v1.2.md`](./SPEC-v1.2.md)。每 sprint 之間 ≥7 日 field data,user 確認先開下一個:
+Field test 之前嘅 UX 修正 — 4 個 commit 喺 v1.2.1 同 v1.2.3 之間,sprint 2 (B + D) 因為呢啲修正更優先 skip 咗:
 
-- **v1.2.2** (Sprint 2)— B 教師版 prompt export + D Class roster(7-10 hr,🟡 中風險)
-- **v1.2.3** (Sprint 3)— E Image generation backend hook(6-10 hr,🔴 高風險,security 優先)
+### UX fix 1 — 結果面板 hide until ready
+- 一開始 4 個 category 未揀齊,結果面板完全隱藏(`opacity transition`)
+- SEN accessibility:避免學生見到空白 prompt 困惑
 
-過咗呢 3 個 sprint 嘅 candidate features:
-- 多語言 i18n framework(完整 i18n system,唔只 prompt)
-- Service worker offline-first
-- Student profile 同步 backend
+### UX fix 2 — 3-col card grid on tablet+
+- Tablet(≥500px viewport)自動轉 3-col grid,6 張卡一次過見到
+- 用 raw CSS `@media (min-width: 500px)`,**唔靠 Tailwind responsive**(FilePanel Browser @ DPR 2x 唔 trigger `sm:`/`md:`/`lg:`)
+- Mobile 維持 1-col scroll
+
+### UX fix 3 — Worksheet = 4 pages, 3-col grid
+- 原本 worksheet 每張卡 1 頁 → 25 pages 太癲
+- 改成 **每 category 1 頁**,共 4 頁,3-col grid 細卡
+- 列印時 4 頁 handout 比 25 頁可行
+
+### UX fix 4 — Trim defaults + 「顯示更多」toggle
+- 預設選項減: who 7→6 / act 8→6 / style 6→4 / color 6→4
+- 每 category 有「**顯示更多**」掣 per-user toggle (`localStorage` `midautumn_show_more`)
+- Advanced 選項對中度智障學生 cognitive load 太重, defaults 留俾主流使用
+
+**Commits in this patch**:
+- `8c29bca` fix(UX): hide result panel until all 4 categories picked
+- `0bc3729` fix(UX): 3-col card grid on tablet+ (raw CSS @media)
+- `bfe38a8` fix(UX): worksheet mode = 4 pages (1 per category), 3-col grid
+- `8a2c2c3` feat(UX): trim default options to 6/6/4/4 + 'show more' toggle
+
+---
+
+## 🆕 v1.2.3 Changelog — Image Generation Hook (2026-09-22)
+
+🔒 **Security baseline**: Pollinations.ai 唔需要 API key → 零秘密風險。
+
+### E. Image Generation (optional, OFF by default)
+
+- 老師 mode panel 加 **「🎨 Image Generation」** section
+- Toggle「啟用 Image Generation」(OFF by default, 學生 user 唔見到掣)
+- Result panel 加 **「🎨 生成圖」** 掣 → fetch `https://image.pollinations.ai/prompt/...` 直接 GET, CORS open, ~50-200KB JPEG
+- 圖片 render 喺 result panel inline,可撳「下載」save
+- **`AbortController`**: `resetAll()` 中止 in-flight request(防止 stale image 寫入 history)
+- **Loading spinner** + retry button(失敗時)
+- **`localStorage` `midautumn_enable_image_gen`** 記住 toggle 狀態
+
+### 🛡️ Security
+
+- ✅ Zero API key → 唔需要保護
+- ✅ **OFF by default** 對 SEN 學生(家長 / 老師 opt-in)
+- ✅ Threat model 寫入 [`SECURITY.md`](./SECURITY.md)
+
+### 🐛 Fix: GitHub Pages root URL 404
+- 新加 `index.html`(51 行),meta-refresh 0 秒跳去 `midautumn-prompt-builder.html`
+- `/` URL 而家 serve 個 app,唔再 404
+
+**Commits in this sprint**:
+- `0b8a1ab` chore(E): security audit + SPEC v1.2.3 frozen
+- `427ecd8` feat(E): image generation hook via Pollinations.ai (free, no key)
+- `959a0a7` fix(pages): add index.html redirect so / serves the app
+
+---
+
+## ✅ v1.2 Status: COMPLETED
+
+**3 個 sprint + 1 個 UX patch,total 11 commits:**
+
+| Sprint | Status | Outcome |
+|---|---|---|
+| v1.2.1 (A + C) | ✅ done | zh-CN tab, worksheet print, a11y fix |
+| v1.2.2 (B + D) | ⏸ skipped | Deferred to v1.3 (UX fixes prioritized) |
+| UX Patch | ✅ done | panel-hide, 3-col, worksheet 4-page, trim defaults |
+| v1.2.3 (E) | ✅ done | image-gen via Pollinations, OFF by default |
+
+詳細 spec / 風險 register / reference table 見 [`SPEC-v1.2.md`](./SPEC-v1.2.md)。
+
+---
+
+## 🛣 Roadmap — v1.3 candidates
+
+詳細 spec 見 [`SPEC-v1.3.md`](./SPEC-v1.3.md)(draft)。每 sprint ≥7 日 field data,user 確認先開下一個。
+
+**Deferred from v1.2**:
+- **B** Prompt Export (PDF/TXT/rich clipboard)— 7-10 hr, 🟡 中
+- **D** Class Roster (multi-student)— 7-10 hr, 🟡 中 (schema migration)
+
+**New from v1.2.3 retrospective**:
+- Image-gen UX iteration (rate limits / retry count / CDN caching after field test)
+- Pollinations quality variance mitigation (negative prompt tuning / seed control)
+
+**Long-term**:
+- Service worker offline-first(離線 reload 空白問題)
+- PWA installable (Add to Home Screen)
+- 多語言 i18n framework(完整 i18n,唔只 prompt)
 - Native mobile app(Tauri / Capacitor)
 
 ---
