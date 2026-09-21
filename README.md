@@ -66,7 +66,7 @@ Intended URL: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
 | Icons | Font Awesome 6.5 (CDN) |
 | Font | Noto Sans TC (Google Fonts CDN) |
 | State | Vanilla JS + `localStorage`(PIN / 歷史) |
-| Voice | `window.speechSynthesis`(廣東話 `zh-HK`) |
+| Voice | `window.speechSynthesis` + fallback chain (zh-HK → zh-CN → en) |
 | Deploy | GitHub Actions → GitHub Pages(`actions/deploy-pages@v4`) |
 
 **無 build,無 npm,無 backend** — 改完 HTML 推上 `main` 即 deploy。
@@ -111,22 +111,61 @@ open midautumn-prompt-builder.html
 ## 🐛 Known Limitations(老師要知道)
 
 - **無 offline-first cache strategy**:第一次 load 要裝晒 22 張 JPG(~6 MB),之後 service worker 冇做,離線 reload 會空白
-- **語音廣東話要 iOS / macOS / Chrome 內置 voice**:部分 Android 機(尤其大陸品牌)冇 `zh-HK` voice,fallback 會讀普通話或者英文
 - **Mobile keyboard 輸入學生名** 喺細芒(<375px)會擋住「生成」掣,目前要 scroll 一下
 - **多於 5 個學生同時用** localStorage quota 易撞,但呢個 app 設計係 1 部機 1 個老師用,history 共用,唔算 bug
 - **GitHub Pages URL 未啟用**(見頂部 ⏳)— 啟用後即可用
 
 ---
 
-## 🛣 Roadmap(v1.2 — 等待 teacher input 揀方向)
+## 🆕 v1.2.1 Changelog (2026-09-21)
 
-候選 scope,未 frozen:
+### A. 多語言 Prompt — 3 tabs
 
-- **A. 多語言**:除繁中 + 英,加簡中 / 廣東話話音 prompt
-- **B. 教師版 prompt export**:一鍵 export 全部 prompt 成 PDF / Google Doc,方便改作業
-- **C. 列印 layout 改善**:現時 print CSS 基本,想加每張卡一頁嘅 worksheet mode
-- **D. 自動 class roster**:支援多學生,自動存每個 student 嘅 prompt 集
-- **E. 圖像生成 backend hook**:直接 generate Midjourney / DALL·E API,唔使人手 copy
+- 結果面板由 2 tab(繁中 / 英)變 3 tab:**繁體中文 / 简体中文 / English**
+- 每個 data item 都有 `zhCn` field(簡體中文版本)— 28 個選項全部覆蓋
+- Negative prompt 都分中港兩地版本(繁 vs 簡)
+- Tab 選擇記住喺 `localStorage`(`midautumn_lang_tab`),下次 reload 自動還原
+- 適合中港跨境班房 / 普通話學生
+
+### C. Worksheet 列印模式
+
+- 老師模式 panel 加「🖨️ Worksheet 列印」section
+- Toggle 啟用後:**每張卡獨立一頁**,學生可貼紙 / 圈出嚟揀
+- 列印時自動隱藏 nav / 結果面板 / 語音掣
+- Toggle 狀態記住喺 `localStorage`(`midautumn_worksheet_mode`)
+
+### Bonus: 語音 fallback chain
+
+- 之前限制「無 zh-HK voice 嘅 Android 機會讀錯」已解決
+- Fallback 順序: `zh-HK` → `zh-CN` → `en`(first available wins)
+- 即係內地 Android / 國際 Chrome 都有機會讀到廣東話
+
+### a11y fix
+
+- `#soundToggle` button 加 `aria-label="音效開關"`(axe-core: 0 violations)
+
+**Commits in this sprint**:
+- `59e75b1` feat(A): zh-CN prompt data + 3-tab result panel
+- `75ef399` feat(A): voice fallback chain + localStorage
+- `1d4beeb` feat(C): worksheet-mode CSS + worksheet-card class
+- `1aa6443` feat(C): teacher-mode toggle + printWorksheet
+- `de926a5` fix(a11y): aria-label on soundToggle
+- 詳細 spec 見 [`SPEC-v1.2.md`](./SPEC-v1.2.md)
+
+---
+
+## 🛣 Roadmap(v1.2 餘下 sprints)
+
+詳細 spec 見 [`SPEC-v1.2.md`](./SPEC-v1.2.md)。每 sprint 之間 ≥7 日 field data,user 確認先開下一個:
+
+- **v1.2.2** (Sprint 2)— B 教師版 prompt export + D Class roster(7-10 hr,🟡 中風險)
+- **v1.2.3** (Sprint 3)— E Image generation backend hook(6-10 hr,🔴 高風險,security 優先)
+
+過咗呢 3 個 sprint 嘅 candidate features:
+- 多語言 i18n framework(完整 i18n system,唔只 prompt)
+- Service worker offline-first
+- Student profile 同步 backend
+- Native mobile app(Tauri / Capacitor)
 
 ---
 
