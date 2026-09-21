@@ -229,28 +229,42 @@
 
 ### Sprint v1.2.3 — Image Generation Hook (6-10 hr, 🔴)
 
-**Pre-flight blocker questions**(用戶要答):
-1. API provider 揀邊個?(Pollinations free / DALL-E 需要申請 / 其他)
-2. Backend proxy vs client-side direct?(建議 backend,但 v1.2.3 用 session-only client)
-3. 學生用時 disable 此掣?(預設 disable,要老師 enable)
+**FROZEN 2026-09-22 decisions**(per user ask_user):
+1. **API provider**: Pollinations.ai (free, no key, CORS open)
+2. **Architecture**: Client-side direct, NO backend proxy (Pollinations needs no key)
+3. **Student access default**: OFF (teacher must explicitly toggle ON per session)
 
-**Commits**(暫定):
-1. `chore(E): security audit doc + threat model`
-2. `feat(E): provider picker modal + session-only key storage`
-3. `feat(E): Pollinations.ai integration (free tier preview)`
-4. `feat(E): image preview + download in result panel`
-5. `feat(E): teacher-mode toggle to enable/disable for students`
-6. `docs: SECURITY.md + README v1.2.3 changelog`
+**Updated commits**(per locked plan):
+1. `docs: SECURITY.md threat model + .gitignore`
+2. `docs(SPEC): v1.2.3 frozen — Pollinations + off-by-default`
+3. `feat(E): teacher panel — Image Generation toggle (off by default)`
+4. `feat(E): result panel — 🎨 生成圖 button + image display`
+5. `feat(E): generateImage() with fetch + AbortController + retry + timeout 60s`
+6. `feat(E): resetAll clears image state + aborts in-flight requests`
+7. `fix(E): a11y — image alt text from prompt + loading state live region`
+8. `docs: README v1.2.3 changelog`
 
 **Test gate**:
-- ✅ API key 唔入 localStorage(DevTools 確認)
-- ✅ Pollinations fetch success / fail 都有清晰 error
-- ✅ Teacher disable → 學生 user 見唔到掣
-- ✅ API key commit guard:`git diff` 入面 grep 唔到 key
+- ✅ API key NOT in localStorage (no key needed for Pollinations, but verify `grep -r 'api_key\|secret\|token'` returns nothing)
+- ✅ Pollinations fetch success → image rendered inline
+- ✅ Pollinations fetch fail → error toast + 重試 button (F4 silent data loss guard)
+- ✅ Teacher toggle OFF → 學生 user 唔見到掣 (F3 enable-condition)
+- ✅ Image reset on `resetAll()` (F4)
+- ✅ AbortController cancel on `resetAll()` (mid-flight)
+- ✅ a11y: image has alt text from prompt; loading state has `role="status"` live region
+- ✅ axe-core: 0 violations
 
-**Risk**: 🔴 高。Security + API availability + cost。
+**Risk**: 🔴 高(reduced from initial assessment because no API key required).
 
-**Rollback**: Feature flag `enableImageGeneration = false` 喺 teacher mode 即時 disable,唔需 revert code。
+**Rollback**: Teacher toggle `enableImageGeneration = false` 即時 disable, no code revert needed.
+
+**Endpoint** (Pollinations.ai):
+```
+GET https://image.pollinations.ai/prompt/{encodeURIComponent(prompt)}?width=512&height=512&seed={random}&nologo=true
+Response: image/jpeg binary, ~50-200KB, CORS `*`
+```
+
+**Threat model**: See `SECURITY.md` §1 for full analysis.
 
 ---
 
