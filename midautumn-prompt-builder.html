@@ -102,6 +102,72 @@
       .print-label { font-size: 0.75rem; color: #9ca3af; font-weight: bold; text-transform: uppercase; }
       .print-value { font-size: 1.25rem; font-weight: 800; }
       .print-prompt { border: 3px solid #ea580c; border-radius: 1rem; padding: 1.5rem; margin-top: 1rem; font-size: 1.1rem; line-height: 1.8; }
+
+      /* Worksheet print mode — one card per page (sprint v1.2.1, feature C) */
+      body.worksheet-mode nav,
+      body.worksheet-mode #result-panel,
+      body.worksheet-mode #teacherModal,
+      body.worksheet-mode .no-print,
+      body.worksheet-mode #studentName,
+      body.worksheet-mode #prevBtn,
+      body.worksheet-mode #nextWrap,
+      body.worksheet-mode .speak-btn { display: none !important; }
+      body.worksheet-mode .step-panel {
+        display: block !important;
+        page-break-before: always;
+      }
+      body.worksheet-mode .step-panel:first-of-type { page-break-before: avoid; }
+      body.worksheet-mode #who-grid,
+      body.worksheet-mode #act-grid,
+      body.worksheet-mode #style-grid,
+      body.worksheet-mode #color-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+      }
+      body.worksheet-mode .card.worksheet-card {
+        min-height: 92vh;
+        page-break-after: always;
+        page-break-inside: avoid;
+        border: 4px solid #ea580c !important;
+        padding: 2.5rem !important;
+        margin: 0.5rem 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #fffbeb !important;
+      }
+      body.worksheet-mode .card.worksheet-card img {
+        width: 280px !important;
+        height: 280px !important;
+      }
+      body.worksheet-mode .card.worksheet-card .card-text {
+        font-size: 3rem !important;
+        margin-top: 1.5rem !important;
+      }
+    }
+
+    /* Worksheet screen-mode (visible preview when toggle on, before printing) */
+    body.worksheet-mode .step-panel { display: block !important; }
+    body.worksheet-mode .step-panel:not(.active) { display: block !important; }
+    body.worksheet-mode #who-grid,
+    body.worksheet-mode #act-grid,
+    body.worksheet-mode #style-grid,
+    body.worksheet-mode #color-grid {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+    }
+    body.worksheet-mode .card.worksheet-card {
+      min-height: 60vh;
+      border: 3px solid #ea580c !important;
+      padding: 1.5rem;
+      margin-bottom: 0.75rem;
+      background: #fffbeb !important;
+    }
+    body.worksheet-mode .card.worksheet-card img {
+      width: 180px !important;
+      height: 180px !important;
     }
     /* Pick flash animation */
     @keyframes pickFlash {
@@ -563,7 +629,7 @@ function renderCard(item, key) {
   if (key === 'color') {
     const css = item.css || '';
     return `
-      <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}"
+      <div class="card worksheet-card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}"
            style="min-height:170px;background:${css};background-size:cover"
            tabindex="0" onkeydown="onCardKey(event,'${key}','${item.id}')">
         <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${zhSafe}', this)" title="${voiceTitle}">
@@ -579,7 +645,7 @@ function renderCard(item, key) {
   // Normal cards with image
   const imgStyle = key === 'style' ? 'width:110px;height:80px;object-fit:cover;border-radius:14px;border:3px solid #fde68a;' : 'width:90px;height:90px;object-fit:cover;border-radius:16px;border:3px solid #fde68a;';
   return `
-    <div class="card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}"
+    <div class="card worksheet-card rounded-3xl p-3 text-center relative ${cardClass} ${flashClass}"
          style="min-height:170px"
          tabindex="0" onkeydown="onCardKey(event,'${key}','${item.id}')">
       <button class="speak-btn ${voiceClass}" onclick="event.stopPropagation();speak('${zhSafe}', this)" title="${voiceTitle}">
