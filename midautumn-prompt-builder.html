@@ -114,60 +114,56 @@
       body.worksheet-mode .speak-btn { display: none !important; }
       body.worksheet-mode .step-panel {
         display: block !important;
-        page-break-before: always;
+        page-break-after: always;
       }
-      body.worksheet-mode .step-panel:first-of-type { page-break-before: avoid; }
+      body.worksheet-mode #step-5,
+      body.worksheet-mode .step-panel:last-of-type { display: none !important; }
       body.worksheet-mode #who-grid,
       body.worksheet-mode #act-grid,
       body.worksheet-mode #style-grid,
       body.worksheet-mode #color-grid {
         display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 0 !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 8px !important;
       }
       body.worksheet-mode .card.worksheet-card {
-        min-height: 92vh;
-        page-break-after: always;
         page-break-inside: avoid;
-        border: 4px solid #ea580c !important;
-        padding: 2.5rem !important;
-        margin: 0.5rem 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
+        border: 2px solid #ea580c !important;
+        padding: 0.5rem !important;
         background: #fffbeb !important;
       }
       body.worksheet-mode .card.worksheet-card img {
-        width: 280px !important;
-        height: 280px !important;
+        width: 80px !important;
+        height: 80px !important;
       }
       body.worksheet-mode .card.worksheet-card .card-text {
-        font-size: 3rem !important;
-        margin-top: 1.5rem !important;
+        font-size: 1rem !important;
       }
+      body.worksheet-mode .card .speak-btn { display: none !important; }
+      body.worksheet-mode .card .confirm-badge { display: none !important; }
     }
 
-    /* Worksheet screen-mode (visible preview when toggle on, before printing) */
+    /* Worksheet screen-mode preview (3-col layout, 4 pages worth of content scrollable) */
     body.worksheet-mode .step-panel { display: block !important; }
     body.worksheet-mode .step-panel:not(.active) { display: block !important; }
+    body.worksheet-mode #step-5 { display: none !important; }
     body.worksheet-mode #who-grid,
     body.worksheet-mode #act-grid,
     body.worksheet-mode #style-grid,
     body.worksheet-mode #color-grid {
       display: grid !important;
-      grid-template-columns: 1fr !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 0.75rem !important;
     }
     body.worksheet-mode .card.worksheet-card {
-      min-height: 60vh;
-      border: 3px solid #ea580c !important;
-      padding: 1.5rem;
-      margin-bottom: 0.75rem;
+      min-height: auto !important;
+      border: 2px solid #ea580c !important;
+      padding: 0.75rem !important;
       background: #fffbeb !important;
     }
     body.worksheet-mode .card.worksheet-card img {
-      width: 180px !important;
-      height: 180px !important;
+      width: 80px !important;
+      height: 80px !important;
     }
 
     /* Result panel — hidden until all 4 categories picked (SEN accessibility) */
