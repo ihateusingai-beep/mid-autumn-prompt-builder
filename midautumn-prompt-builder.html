@@ -237,9 +237,10 @@
   <div id="result-panel" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[96%] max-w-3xl z-50">
     <div class="glass border-4 border-orange-200 rounded-3xl p-4 shadow-xl">
       <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <div class="flex gap-2">
-          <button id="tabZh" onclick="setTab('zh')" class="px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm">中文提詞</button>
-          <button id="tabEn" onclick="setTab('en')" class="px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm">英文 Prompt</button>
+        <div class="flex gap-2 flex-wrap">
+          <button id="tabZh" onclick="setTab('zh')" class="px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm">繁體中文</button>
+          <button id="tabCn" onclick="setTab('cn')" class="px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm">简体中文</button>
+          <button id="tabEn" onclick="setTab('en')" class="px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm">English</button>
         </div>
         <div class="flex gap-2 flex-wrap">
           <button onclick="saveToHistory()" class="bg-green-100 text-green-700 font-extrabold px-3 py-1 rounded-xl border-2 border-green-300 text-sm no-print">
@@ -254,6 +255,7 @@
       <p id="outZh" class="bg-white rounded-2xl p-3 min-h-[72px] text-base font-semibold leading-relaxed border-2 border-orange-100">
         請先完成所有選擇。
       </p>
+      <p id="outCn" class="hidden bg-white rounded-2xl p-3 min-h-[72px] text-base font-semibold leading-relaxed border-2 border-orange-100"></p>
       <p id="outEn" class="hidden bg-white rounded-2xl p-3 min-h-[72px] text-sm font-medium leading-relaxed border-2 border-orange-100"></p>
       <button onclick="copyPrompt()" id="copyBtn" class="mt-3 w-full bg-stone-900 text-white font-extrabold py-3 rounded-2xl">
         <i class="fa-solid fa-copy mr-2"></i>複製提詞
@@ -329,48 +331,49 @@
 // ── Data ──────────────────────────────────────────────────────────────────
 const data = {
   who: [
-    { id:'family', zh:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
-    { id:'kids', zh:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
-    { id:'rabbit', zh:'🐇 兔仔', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
-    { id:'fairy', zh:'👸 嫦娥', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
-    { id:'cat', zh:'🐱 小貓', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
-    { id:'me', zh:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' },
-    { id:'grandparents', zh:'爺爺奶奶', en:'kind grandpa and grandma', img:'img/who-family.jpg' },
-    { id:'classmates', zh:'老師同學', en:'a friendly teacher with classmates', img:'img/who-kids.jpg' },
-    { id:'fairyrabbit', zh:'嫦娥同玉兔', en:'Chang-e with the jade rabbit together', img:'img/who-change.jpg' },
-    { id:'friends', zh:'好朋友', en:'two happy best friends', img:'img/who-kids.jpg' }
+    { id:'family', zh:'一家人', zhCn:'一家人', en:'a happy family together', img:'img/who-family.jpg' },
+    { id:'kids', zh:'小朋友', zhCn:'小朋友', en:'cheerful children', img:'img/who-kids.jpg' },
+    { id:'rabbit', zh:'🐇 兔仔', zhCn:'🐇 兔子', en:'a cute fluffy white rabbit', img:'img/who-rabbit.jpg' },
+    { id:'fairy', zh:'👸 嫦娥', zhCn:'👸 嫦娥', en:'a kind fairy lady Chang-e', img:'img/who-change.jpg' },
+    { id:'cat', zh:'🐱 小貓', zhCn:'🐱 小猫', en:'a fluffy cat wearing a tiny lantern hat', img:'img/who-cat.jpg' },
+    { id:'me', zh:'😊 我自己', zhCn:'😊 我自己', en:'myself as a student character', img:'img/who-me.jpg' },
+    { id:'grandparents', zh:'爺爺奶奶', zhCn:'爷爷奶奶', en:'kind grandpa and grandma', img:'img/who-family.jpg' },
+    { id:'classmates', zh:'老師同學', zhCn:'老师同学', en:'a friendly teacher with classmates', img:'img/who-kids.jpg' },
+    { id:'fairyrabbit', zh:'嫦娥同玉兔', zhCn:'嫦娥和玉兔', en:'Chang-e with the jade rabbit together', img:'img/who-change.jpg' },
+    { id:'friends', zh:'好朋友', zhCn:'好朋友', en:'two happy best friends', img:'img/who-kids.jpg' }
   ],
   act: [
-    { id:'moon', zh:'🌝 望月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
-    { id:'lantern', zh:'🏮 拎燈籠', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
-    { id:'cake', zh:'🥮 食月餅', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
-    { id:'sky', zh:'🎈 放天燈', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
-    { id:'garden', zh:'🌸 花園行', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
-    { id:'boat', zh:'🌊 湖邊坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' },
-    { id:'share', zh:'🍰 分享月餅', en:'happily sharing mooncakes with others', img:'img/act-cake.jpg' },
-    { id:'parade', zh:'🚶 提燈遊園', en:'strolling in a lantern parade in the park', img:'img/act-lantern.jpg' },
-    { id:'photo', zh:'📷 團圓影相', en:'taking a warm family photo under the moon', img:'img/act-garden.jpg' },
-    { id:'candy', zh:'🍬 食糖仔', en:'enjoying sweet festive candies', img:'img/act-cake.jpg' }
+    { id:'moon', zh:'🌝 望月亮', zhCn:'🌝 看月亮', en:'looking at a huge round full moon', img:'img/act-moon.jpg' },
+    { id:'lantern', zh:'🏮 拎燈籠', zhCn:'🏮 提灯笼', en:'holding glowing red paper lanterns', img:'img/act-lantern.jpg' },
+    { id:'cake', zh:'🥮 食月餅', zhCn:'🥮 吃月饼', en:'eating delicious mooncakes', img:'img/act-cake.jpg' },
+    { id:'sky', zh:'🎈 放天燈', zhCn:'🎈 放天灯', en:'releasing warm sky lanterns into the night', img:'img/act-sky.jpg' },
+    { id:'garden', zh:'🌸 花園行', zhCn:'🌸 逛花园', en:'walking in a beautiful garden', img:'img/act-garden.jpg' },
+    { id:'boat', zh:'🌊 湖邊坐', zhCn:'🌊 湖边坐', en:'sitting by a calm lake looking at the moon', img:'img/act-boat.jpg' },
+    { id:'share', zh:'🍰 分享月餅', zhCn:'🍰 分月饼', en:'happily sharing mooncakes with others', img:'img/act-cake.jpg' },
+    { id:'parade', zh:'🚶 提燈遊園', zhCn:'🚶 提灯游园', en:'strolling in a lantern parade in the park', img:'img/act-lantern.jpg' },
+    { id:'photo', zh:'📷 團圓影相', zhCn:'📷 团圆拍照', en:'taking a warm family photo under the moon', img:'img/act-garden.jpg' },
+    { id:'candy', zh:'🍬 食糖仔', zhCn:'🍬 吃糖果', en:'enjoying sweet festive candies', img:'img/act-cake.jpg' }
   ],
   style: [
-    { id:'cartoon', zh:'😊 可愛卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
-    { id:'picturebook', zh:'🎨 圖畫書', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
-    { id:'paper', zh:'✂️ 剪紙畫', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
-    { id:'night', zh:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' },
-    { id:'simple', zh:'✏️ 簡筆畫', en:'simple line drawing for kids, clear shapes, minimal detail', img:'img/style-cartoon.jpg' },
-    { id:'softnight', zh:'🌌 溫柔夜景', en:'soft gentle night watercolor, warm glow, calm and safe', img:'img/style-night.jpg' }
+    { id:'cartoon', zh:'😊 可愛卡通', zhCn:'😊 可爱卡通', en:'simple cute cartoon, big faces, thick outlines, easy to understand', img:'img/style-cartoon.jpg' },
+    { id:'picturebook', zh:'🎨 圖畫書', zhCn:'🎨 图画书', en:'children picture-book watercolor, soft and warm', img:'img/style-picturebook.jpg' },
+    { id:'paper', zh:'✂️ 剪紙畫', zhCn:'✂️ 剪纸画', en:'Chinese paper-cut art, flat colorful shapes, simple patterns', img:'img/style-paper.jpg' },
+    { id:'night', zh:'🌙 夜空', zhCn:'🌙 夜空', en:'gentle night scene, glowing lights, not scary', img:'img/style-night.jpg' },
+    { id:'simple', zh:'✏️ 簡筆畫', zhCn:'✏️ 简笔画', en:'simple line drawing for kids, clear shapes, minimal detail', img:'img/style-cartoon.jpg' },
+    { id:'softnight', zh:'🌌 溫柔夜景', zhCn:'🌌 温柔夜景', en:'soft gentle night watercolor, warm glow, calm and safe', img:'img/style-night.jpg' }
   ],
   color: [
-    { id:'gold', zh:'🌝 金黃（月亮）', en:'golden yellow moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
-    { id:'red', zh:'🏮 紅色（燈籠）', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
-    { id:'purple', zh:'🌌 紫色（夜空）', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
-    { id:'osmanthus', zh:'🌼 黃色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' },
-    { id:'silver', zh:'🌕 銀白（月光）', en:'silvery white moonlight and soft cool glow', css:'linear-gradient(135deg,#94a3b8,#f8fafc)', img:'img/color-gold.jpg' },
-    { id:'orange', zh:'🌅 橙紅（燈火）', en:'warm orange-red lantern light and sunset glow', css:'linear-gradient(135deg,#ea580c,#fbbf24)', img:'img/color-red.jpg' }
+    { id:'gold', zh:'🌝 金黃（月亮）', zhCn:'🌝 金黄（月亮）', en:'golden yellow moon, warm amber light', css:'linear-gradient(135deg,#f59e0b,#fde68a)', img:'img/color-gold.jpg' },
+    { id:'red', zh:'🏮 紅色（燈籠）', zhCn:'🏮 红色（灯笼）', en:'bright festive red lanterns and gold trim', css:'linear-gradient(135deg,#dc2626,#fbbf24)', img:'img/color-red.jpg' },
+    { id:'purple', zh:'🌌 紫色（夜空）', zhCn:'🌌 紫色（夜空）', en:'soft purple-blue night sky with stars', css:'linear-gradient(135deg,#7c3aed,#93c5fd)', img:'img/color-purple.jpg' },
+    { id:'osmanthus', zh:'🌼 黃色（桂花）', zhCn:'🌼 黄色（桂花）', en:'bright yellow and creamy white', css:'linear-gradient(135deg,#eab308,#fff7ed)', img:'img/color-osmanthus.jpg' },
+    { id:'silver', zh:'🌕 銀白（月光）', zhCn:'🌕 银白（月光）', en:'silvery white moonlight and soft cool glow', css:'linear-gradient(135deg,#94a3b8,#f8fafc)', img:'img/color-gold.jpg' },
+    { id:'orange', zh:'🌅 橙紅（燈火）', zhCn:'🌅 橙红（灯火）', en:'warm orange-red lantern light and sunset glow', css:'linear-gradient(135deg,#ea580c,#fbbf24)', img:'img/color-red.jpg' }
   ]
 };
 
 const NEG_ZH = '唔好恐怖、唔好黑暗、唔好複雜字、唔好模糊、唔好有浮水印';
+const NEG_CN = '不要恐怖、不要黑暗、不要复杂的字、不要模糊、不要有水印、不要拥挤的小细节';
 const NEG_EN = 'no horror, no dark scary mood, no messy text, no blurry faces, no watermark, no crowded tiny details';
 
 const DEFAULT_PIN = '7444';
@@ -501,6 +504,11 @@ function selLabel(key) {
   const items = getSelItems(key);
   if (!items.length) return '';
   return items.map(x => x.zh).join('、');
+}
+function selLabelCn(key) {
+  const items = getSelItems(key);
+  if (!items.length) return '';
+  return items.map(x => x.zhCn || x.zh).join('、');
 }
 function selLabelEn(key) {
   const items = getSelItems(key);
@@ -797,12 +805,18 @@ function autoAdvance(key) {
 // ── Tabs & prompt ─────────────────────────────────────────────────────────
 const TAB_ACTIVE = 'px-3 py-1 rounded-xl font-extrabold bg-orange-500 text-white text-sm';
 const TAB_INACTIVE = 'px-3 py-1 rounded-xl font-extrabold bg-white text-stone-500 text-sm';
+const LANG_TAB_KEY = 'midautumn_lang_tab';
 function setTab(t) {
+  if (!['zh','cn','en'].includes(t)) t = 'zh';
   tab = t;
-  document.getElementById('outZh').classList.toggle('hidden', t !== 'zh');
-  document.getElementById('outEn').classList.toggle('hidden', t !== 'en');
-  document.getElementById('tabZh').className = t === 'zh' ? TAB_ACTIVE : TAB_INACTIVE;
-  document.getElementById('tabEn').className = t === 'en' ? TAB_ACTIVE : TAB_INACTIVE;
+  try { localStorage.setItem(LANG_TAB_KEY, t); } catch {}
+  ['Zh','Cn','En'].forEach(suf => {
+    const tag = suf.toLowerCase();
+    const out = document.getElementById('out'+suf);
+    const btn = document.getElementById('tab'+suf);
+    if (out) out.classList.toggle('hidden', t !== tag);
+    if (btn) btn.className = t === tag ? TAB_ACTIVE : TAB_INACTIVE;
+  });
 }
 
 function getStudentName() {
@@ -821,29 +835,36 @@ function updatePrompt() {
   const name = getStudentName();
   if (!who && !actItems.length && !st && !colItems.length) {
     document.getElementById('outZh').textContent = '請先撳圖揀主角、活動、畫風、顏色。';
+    document.getElementById('outCn').textContent = '请先点图选主角、活动、画风、颜色。';
     document.getElementById('outEn').textContent = 'Please pick who / action / style / color first.';
     return;
   }
 
   // Name is optional: only inject when filled
   let whoZh = who ? `主角係${who.zh}。` : '主角：未揀。';
+  let whoCn = who ? `主角是${who.zhCn || who.zh}。` : '主角：未选。';
   let whoEn = who ? `Main subject: ${who.en}.` : 'Main subject: not chosen.';
   if (name && who) {
     if (who.id === 'me') {
       whoZh = `主角係學生${name}（我自己）。`;
+      whoCn = `主角是学生${name}（我自己）。`;
       whoEn = `Main subject: a student character named ${name} (myself).`;
     } else {
       whoZh = `主角係${who.zh}，學生名叫${name}。`;
+      whoCn = `主角是${who.zhCn || who.zh}，学生名叫${name}。`;
       whoEn = `Main subject: ${who.en}, student name ${name}.`;
     }
   } else if (name && !who) {
     whoZh = `學生名叫${name}。主角：未揀。`;
+    whoCn = `学生名叫${name}。主角：未选。`;
     whoEn = `Student name: ${name}. Main subject: not chosen.`;
   }
 
   const actZh = actItems.length ? `佢哋喺度${selLabel('act')}。` : '活動：未揀。';
+  const actCn = actItems.length ? `他们在${selLabelCn('act')}。` : '活动：未选。';
   const actEn = actItems.length ? `They are ${selLabelEn('act')}.` : 'Action: not chosen.';
   const colZh = colItems.length ? `顏色係${selLabel('color')}。` : '顏色：未揀。';
+  const colCn = colItems.length ? `颜色是${selLabelCn('color')}。` : '颜色：未选。';
   const colEn = colItems.length ? `Colors: ${selLabelEn('color')}.` : 'Colors: not chosen.';
 
   const zh = [
@@ -854,6 +875,16 @@ function updatePrompt() {
     colZh,
     '畫面要大、清楚、溫暖、適合小朋友。',
     '負面：' + NEG_ZH
+  ].filter(Boolean).join('');
+
+  const cn = [
+    '一张开心、容易看的中秋节图片。',
+    whoCn,
+    actCn,
+    st ? `画风是${st.zhCn || st.zh}。` : '画风：未选。',
+    colCn,
+    '画面要大、清楚、温暖、适合小朋友。',
+    '负面：' + NEG_CN
   ].filter(Boolean).join('');
 
   const en = [
@@ -867,6 +898,7 @@ function updatePrompt() {
   ].filter(Boolean).join(' ');
 
   document.getElementById('outZh').textContent = zh;
+  document.getElementById('outCn').textContent = cn;
   document.getElementById('outEn').textContent = en;
 }
 
@@ -887,6 +919,8 @@ function generatePrompt() {
 function copyPrompt() {
   const text = tab === 'zh'
     ? document.getElementById('outZh').textContent
+    : tab === 'cn'
+    ? document.getElementById('outCn').textContent
     : document.getElementById('outEn').textContent;
   navigator.clipboard.writeText(text).then(()=>{
     const t = document.getElementById('toast');
@@ -1052,6 +1086,7 @@ function saveToHistory() {
     colorIds: getSelItems('color').map(x => x.id),
     colorZh: selLabel('color'),
     zh: document.getElementById('outZh').textContent,
+    cn: document.getElementById('outCn').textContent,
     en: document.getElementById('outEn').textContent
   };
   const h = getHistory();
