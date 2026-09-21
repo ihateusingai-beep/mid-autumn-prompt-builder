@@ -169,6 +169,18 @@
       width: 180px !important;
       height: 180px !important;
     }
+
+    /* Result panel — hidden until all 4 categories picked (SEN accessibility) */
+    #result-panel {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    #result-panel.is-hidden {
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+    }
     /* Pick flash animation */
     @keyframes pickFlash {
       0% { box-shadow: 0 0 0 0 rgba(234,88,12,.6); }
@@ -744,6 +756,7 @@ function renderAll() {
   renderGrid('color-grid', 'color');
   renderSummary();
   updateMultiHints();
+  updateResultPanelVisibility();
 
   document.getElementById('dots').innerHTML = Array.from({length:total}, (_,i)=>`
     <span class="w-4 h-4 rounded-full transition ${i+1===step?'bg-orange-500':'bg-orange-200'} ${i+1>step?'opacity-40':''}"></span>
@@ -924,6 +937,7 @@ function updatePrompt() {
   const actItems = getSelItems('act');
   const colItems = getSelItems('color');
   const name = getStudentName();
+  updateResultPanelVisibility();
   if (!who && !actItems.length && !st && !colItems.length) {
     document.getElementById('outZh').textContent = '請先撳圖揀主角、活動、畫風、顏色。';
     document.getElementById('outCn').textContent = '请先点图选主角、活动、画风、颜色。';
@@ -1005,6 +1019,15 @@ function generatePrompt() {
   updatePrompt();
   playChime();
   showToast('🌕 提詞已生成！', 'bg-green-500');
+}
+
+// Show the result panel only when (a) all 4 categories picked, or (b) on step 5 (confirm).
+// Hides the "複製提詞" empty-state chrome that distracts SEN students mid-flow.
+function updateResultPanelVisibility() {
+  const allPicked = !!(sel.who && hasSelection('act') && sel.style && hasSelection('color'));
+  const visible = step === 5 || allPicked;
+  const panel = document.getElementById('result-panel');
+  if (panel) panel.classList.toggle('is-hidden', !visible);
 }
 
 function copyPrompt() {
