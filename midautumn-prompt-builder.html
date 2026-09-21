@@ -395,13 +395,21 @@ let pendingId = null;    // id of the pending card
 let _pendingTimer = null;
 
 // ── Voice ────────────────────────────────────────────────────────────────
+// voiceMap tracks the best available voice per language family
+// Fallback chain (per memory rule 13 F1): zh-HK → zh-CN → en
+let voiceMap = { 'zh-hk': null, 'zh-cn': null, 'en': null };
 function detectVoice() {
   const list = window.speechSynthesis?.getVoices() || [];
-  hasZhVoice = list.some(v => v.lang.startsWith('zh'));
+  const lc = v => (v.lang || '').toLowerCase();
+  voiceMap['zh-hk'] = list.find(v => lc(v.lang).startsWith('zh-hk') || lc(v.lang).startsWith('yue')) || null;
+  voiceMap['zh-cn'] = list.find(v => lc(v.lang).startsWith('zh-cn') || lc(v.lang).startsWith('cmn')) || null;
+  voiceMap.en = list.find(v => lc(v.lang).startsWith('en')) || null;
+  hasZhVoice = !!(voiceMap['zh-hk'] || voiceMap['zh-cn']);
 }
 function getVoice() {
-  const list = window.speechSynthesis?.getVoices() || [];
-  return list.find(v => v.lang.startsWith('zh')) || list[0] || null;
+  // Priority: zh-HK → zh-CN → en → first available
+  return voiceMap['zh-hk'] || voiceMap['zh-cn'] || voiceMap.en
+      || (window.speechSynthesis?.getVoices()[0] || null);
 }
 // Unified speak: pass { prefix } to read "你揀咗...", pass btnEl to animate the button
 function speak(text, btnEl) {
@@ -409,7 +417,7 @@ function speak(text, btnEl) {
   window.speechSynthesis.cancel();
   const msg = (btnEl === 'choice') ? '你揀咗' + text : text;
   const u = new SpeechSynthesisUtterance(msg);
-  u.lang = 'zh-HK';
+  u.lang = voiceMap['zh-hk'] ? 'zh-HK' : voiceMap['zh-cn'] ? 'zh-CN' : 'en';
   u.rate = 0.85;
   const v = getVoice();
   if (v) u.voice = v;
@@ -1153,6 +1161,10 @@ function showToast(msg, color) {
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
+// Restore last-used language tab (memory rule 13 F1: default-state desync guard)
+const savedTab = (() => { try { return localStorage.getItem(LANG_TAB_KEY); } catch { return null; } })();
+if (savedTab && ['zh','cn','en'].includes(savedTab)) setTab(savedTab);
+else setTab('zh'); // explicit default
 renderAll();
 </script>
 </body>
