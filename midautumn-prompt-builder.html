@@ -181,6 +181,13 @@
       transform: translateY(20px);
       pointer-events: none;
     }
+
+    /* Card grids — 2 cols mobile, 3 cols iPad+ (raw CSS to bypass Tailwind breakpoint quirks) */
+    @media (min-width: 500px) {
+      #who-grid, #act-grid, #style-grid, #color-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+    }
     /* Pick flash animation */
     @keyframes pickFlash {
       0% { box-shadow: 0 0 0 0 rgba(234,88,12,.6); }
@@ -246,7 +253,7 @@
       <p class="text-lg text-stone-600 mb-5">
         <i class="fa-solid fa-hand-pointer text-orange-400 mr-1"></i>撳卡揀，再撳同一張卡確認 ✅
       </p>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="who-grid"></div>
+      <div class="grid grid-cols-2 gap-3" id="who-grid"></div>
     </section>
 
     <!-- Step 2 -->
@@ -254,7 +261,7 @@
       <h2 class="text-3xl font-extrabold mb-2">🎯 佢哋做緊咩？</h2>
       <p class="text-lg text-stone-600 mb-2">可以揀 <b>1 至 2</b> 件開心嘅事。</p>
       <p id="actPickHint" class="text-base font-extrabold text-orange-600 mb-4">已揀 0 / 2</p>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="act-grid"></div>
+      <div class="grid grid-cols-2 gap-3" id="act-grid"></div>
     </section>
 
     <!-- Step 3 -->
