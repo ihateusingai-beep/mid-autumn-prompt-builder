@@ -250,6 +250,9 @@
         <i class="fa-solid fa-hand-pointer text-orange-400 mr-1"></i>撳卡揀，再撳同一張卡確認 ✅
       </p>
       <div class="grid grid-cols-2 gap-3" id="who-grid"></div>
+      <button id="whoMoreBtn" onclick="toggleShowMore('who')" class="hidden mt-3 w-full bg-white text-orange-600 font-extrabold px-4 py-3 rounded-2xl border-2 border-orange-200 text-sm">
+        <i class="fa-solid fa-plus-circle mr-1"></i>顯示更多進階選項
+      </button>
     </section>
 
     <!-- Step 2 -->
@@ -258,6 +261,9 @@
       <p class="text-lg text-stone-600 mb-2">可以揀 <b>1 至 2</b> 件開心嘅事。</p>
       <p id="actPickHint" class="text-base font-extrabold text-orange-600 mb-4">已揀 0 / 2</p>
       <div class="grid grid-cols-2 gap-3" id="act-grid"></div>
+      <button id="actMoreBtn" onclick="toggleShowMore('act')" class="hidden mt-3 w-full bg-white text-orange-600 font-extrabold px-4 py-3 rounded-2xl border-2 border-orange-200 text-sm">
+        <i class="fa-solid fa-plus-circle mr-1"></i>顯示更多進階選項
+      </button>
     </section>
 
     <!-- Step 3 -->
@@ -265,6 +271,9 @@
       <h2 class="text-3xl font-extrabold mb-2">🎨 畫面係咩感覺？</h2>
       <p class="text-lg text-stone-600 mb-5">揀一種畫法，愈簡單愈好。</p>
       <div class="grid grid-cols-2 gap-3" id="style-grid"></div>
+      <button id="styleMoreBtn" onclick="toggleShowMore('style')" class="hidden mt-3 w-full bg-white text-orange-600 font-extrabold px-4 py-3 rounded-2xl border-2 border-orange-200 text-sm">
+        <i class="fa-solid fa-plus-circle mr-1"></i>顯示更多進階選項
+      </button>
     </section>
 
     <!-- Step 4 -->
@@ -273,6 +282,9 @@
       <p class="text-lg text-stone-600 mb-2">可以揀 <b>1 至 2</b> 種顏色（例如金+紅）。</p>
       <p id="colorPickHint" class="text-base font-extrabold text-orange-600 mb-4">已揀 0 / 2</p>
       <div class="grid grid-cols-2 gap-3" id="color-grid"></div>
+      <button id="colorMoreBtn" onclick="toggleShowMore('color')" class="hidden mt-3 w-full bg-white text-orange-600 font-extrabold px-4 py-3 rounded-2xl border-2 border-orange-200 text-sm">
+        <i class="fa-solid fa-plus-circle mr-1"></i>顯示更多進階選項
+      </button>
     </section>
 
     <!-- Step 5: Summary / Confirm -->
@@ -692,9 +704,37 @@ function renderCard(item, key) {
 }
 
 // ── Render full grids ─────────────────────────────────────────────────────
+// Default visible count per category (rest = "advanced" hidden behind toggle)
+// SEN-friendly: keep only the most concrete / common options on first paint.
+const DEFAULT_COUNTS = { who: 6, act: 6, style: 4, color: 4 };
+const SHOW_MORE_KEY = 'midautumn_show_more';
+let showMore = { who: false, act: false, style: false, color: false };
 // Single factory: pass the grid element id + the data key
-const renderGrid = (id, key) =>
-  document.getElementById(id).innerHTML = getDataList(key).map(item => renderCard(item, key)).join('');
+const renderGrid = (id, key) => {
+  const all = getDataList(key);
+  const limit = showMore[key] ? all.length : (DEFAULT_COUNTS[key] ?? all.length);
+  document.getElementById(id).innerHTML = all.slice(0, limit).map(item => renderCard(item, key)).join('');
+};
+
+// Show "more" toggle button only when there ARE hidden options
+function updateMoreButtons() {
+  [['who', 'whoMoreBtn'], ['act', 'actMoreBtn'], ['style', 'styleMoreBtn'], ['color', 'colorMoreBtn']].forEach(([key, btnId]) => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const hasHidden = getDataList(key).length > (DEFAULT_COUNTS[key] ?? 0);
+    btn.classList.toggle('hidden', !hasHidden);
+    btn.innerHTML = showMore[key]
+      ? '<i class="fa-solid fa-minus-circle mr-1"></i>收埋進階選項'
+      : `<i class="fa-solid fa-plus-circle mr-1"></i>顯示更多進階選項 (${getDataList(key).length - (DEFAULT_COUNTS[key] ?? 0)} 個)`;
+  });
+}
+
+function toggleShowMore(key) {
+  showMore[key] = !showMore[key];
+  try { localStorage.setItem(SHOW_MORE_KEY, JSON.stringify(showMore)); } catch {}
+  renderGrid(`${key}-grid`, key);
+  updateMoreButtons();
+}
 
 // ── Summary ───────────────────────────────────────────────────────────────
 let _prevSel = { who:null, act:[], style:null, color:[] };
@@ -759,6 +799,7 @@ function renderAll() {
   renderGrid('color-grid', 'color');
   renderSummary();
   updateMultiHints();
+  updateMoreButtons();
   updateResultPanelVisibility();
 
   document.getElementById('dots').innerHTML = Array.from({length:total}, (_,i)=>`
@@ -1300,6 +1341,11 @@ if (savedWorksheet === '1') {
   worksheetMode = true;
   document.body.classList.add('worksheet-mode');
 }
+// Restore "show more" toggles per category
+try {
+  const saved = JSON.parse(localStorage.getItem(SHOW_MORE_KEY) || '{}');
+  ['who','act','style','color'].forEach(k => { if (saved[k]) showMore[k] = true; });
+} catch {}
 renderAll();
 </script>
 </body>
