@@ -1,6 +1,6 @@
-# SPEC v1.3 — Mid-Autumn Prompt Builder (DRAFT)
+# SPEC v1.3 — Mid-Autumn Prompt Builder (FROZEN)
 
-> **Status**: 🟡 DRAFT 2026-09-22。Scope 喺 7-day field test 之後 freeze。Carries over v1.2 deferred items + 新 retrospective candidates。
+> **Status**: ✅ **FROZEN 2026-09-22**。Scope locked: **A + B + C + E**(4 sprints)。Skip D (offline-first) + F (field-test retrospective patch)。Cadence 7-day field data per sprint。
 > **Owner**: kencheng
 > **Repo**: <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder>
 > **Live**: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
@@ -10,18 +10,23 @@
 
 ## 0. TL;DR (30s 讀完)
 
-v1.3 carries 2 個 deferred v1.2 features + 3 個 retrospective candidates from v1.2.3 + 1 個 known-limitation fix。共 6 個 sprints 可行,**會 freeze 落 3-4 個** based on field test data。
+v1.3 scope = 4 sprints frozen from 6 candidates。每 sprint ≥7 日 field data window。Total estimate ~15-21 hr, LoC ~480。
 
 | Sprint | Features | 估時 | 風險 | Source |
 |---|---|---|---|---|
-| **v1.3.1** | Image-gen UX iteration (rate-limit / cache / seed) | 2-3 hr | 🟢 | Retrospective from v1.2.3 |
-| **v1.3.2** | B Prompt Export (PDF / TXT / rich) | 4-6 hr | 🟢 | Deferred from v1.2.2 |
-| **v1.3.3** | D Class Roster (multi-student) | 7-10 hr | 🟡 (schema migration) | Deferred from v1.2.2 |
-| **v1.3.4** | Service Worker offline-first | 3-5 hr | 🟢 | Known Limitation #1 |
-| **v1.3.5** | Teacher PIN upgrade + session timeout | 1-2 hr | 🟢 | D privacy consideration |
-| **v1.3.6** | (TBD by field test) | — | — | — |
+| **v1.3.1** | A Image-gen UX iteration (cache / seed / rate-limit / error states) | 2-3 hr | 🟢 | Retrospective from v1.2.3 |
+| **v1.3.2** | B Prompt Export (PDF / TXT / rich clipboard) | 4-6 hr | 🟢 | Deferred from v1.2.2 |
+| **v1.3.3** | C Class Roster (multi-student + auto-migrate) | 7-10 hr | 🟡 (schema migration) | Deferred from v1.2.2 |
+| **v1.3.4** | E Teacher PIN upgrade + session timeout | 1-2 hr | 🟢 | C privacy consideration |
+| ~~v1.3.4~~ | ~~D Service Worker offline-first~~ | — | — | ❌ DEFERRED to v1.4 |
+| ~~v1.3.6~~ | ~~F Field-test retrospective patch~~ | — | — | ❌ Independent commit if needed |
 
-**Trigger**: v1.2 closed + 7-day field test (SEN teacher + student) + user confirms scope。
+**Trigger**: v1.2 closed (`86c9141`+`8b0b393`) → ≥7-day field test → open Sprint v1.3.1 plan doc。
+
+**Decisions locked 2026-09-22** (per user questionnaire `ask_d7c2b8d9ddc6e49f14db21a1`):
+1. Scope = A + B + C + E
+2. Cadence = keep 7 日 field data per sprint
+3. C Roster migration = auto-migrate + backup `midautumn_history_v12`
 
 ---
 
@@ -121,91 +126,82 @@ v1.3 carries 2 個 deferred v1.2 features + 3 個 retrospective candidates from 
 - Empty roster → drop-down 自動 hide,fallback 舊 free-text input
 - Export 1 個學生 → 該學生所有 prompt 1-click TXT
 
+**Migration strategy** (RESOLVED 2026-09-22 per user questionnaire):
+- ✅ **Auto-migrate + backup** (NOT prompt per-entry)
+- On first load after deploy:
+  1. 讀 `midautumn_history`,check if `studentName` field exists on every entry
+  2. Backup: 寫整個舊 array 到 `midautumn_history_v12` key(永久保留,可手動 restore)
+  3. Migrate: 對冇 `studentName` 嘅 entry, 設 `studentName = '(未命名)'`(之後 user 可手動改名 / 刪除)
+  4. Write back to `midautumn_history`
+  5. Toast notification: 「已 migrate X 個舊 prompt 到新 schema, 舊 data 備份咗喺 v12」
+- Backup key 永久保留, manual restore via DevTools if needed
+
 **Bug Family Audit**:
 - F1 default-state desync: ✅ Dropdown default = first student in roster
-- F4 silent data loss: ✅ Roster 寫 localStorage 前 toast confirm + auto-backup to `midautumn_history_v12`
+- F4 silent data loss: ✅ Auto-backup to `midautumn_history_v12` BEFORE write-back
 - F3 enable-condition: ✅ Dropdown enable = roster.length > 0
 - F2 reset-on-render: ⚠️ Roster 改完 dropdown 唔 crash,要小心 re-render 順序
-- **CRITICAL**: Schema migration — old `midautumn_history` entries without `studentName` must migrate or risk F4 silent data loss
-
-**Pre-flight blockers**:
-- Q1 (per SPEC-v1.2 §5): Auto-migrate old history? (recommend yes + backup)
-- Q3 (per SPEC-v1.2 §5): Add teacher PIN session timeout?
+- **CRITICAL**: Schema migration — old `midautumn_history` entries without `studentName` must migrate or risk F4 silent data loss → auto-backup 防呆
 
 ---
 
-### D. Service Worker offline-first (v1.3.4)
+### D. Service Worker offline-first (v1.3.4) — ❌ DEFERRED to v1.4
 
-**What**: 解決 Known Limitation #1 — 第一次 load 要裝晒 22 張 JPG(~6 MB),離線 reload 會空白。
+**Status**: Not in v1.3 scope per user 2026-09-22 decision。Reason: 22 張 JPG cache ~6MB 對 offline 用有意義,但 v1.3 集中喺 user-facing features + Roster schema migration,offline work 屬 v1.4 DX improvement。
 
-**How**:
-- 加 `service-worker.js`(root)
-- Cache strategy:
-  - **HTML / CSS / JS**: stale-while-revalidate
-  - **JPG (img/)**: cache-first + 30-day expiry
-  - **Image generation response (Pollinations)**: network-only (don't cache external AI)
-- Register on first load, update on subsequent
+**Carries to v1.4**:
+- Service worker registration (root `service-worker.js`)
+- Cache strategy: stale-while-revalidate (HTML/CSS/JS) + cache-first 30-day (img/)
+- Online/offline indicator + new-version toast
 
-**Surface**:
-- Status indicator (top-right): 「📶 Online」/「✈️ Offline」
-- First-load install progress (optional)
+**Why deferred**:
+- D Roster schema migration 同 sprint ship 風險高,offline work 會加 conflict surface
+- Roster 已 ship 後, v1.4 再加 offline-first 更穩
+- 22 張 JPG 第一次 load 慢 but 學生班房通常有 wifi
 
-**Acceptance**:
-- 第一次 load → reload → 完全 offline 仍 work (HTML + 22 JPG 從 cache)
-- 新版 HTML push → user 收到 update toast 「有新版本,撳重載」
-- Service worker fail (e.g. file://) → gracefully degrade (no error)
+### E. Teacher PIN upgrade + session timeout (v1.3.4) ✅ IN SCOPE
 
-**Bug Family Audit**:
-- F1 default-state desync: ✅ Online/offline status match real network
-- F4 silent data loss: ⚠️ Cache invalidation on HTML update must not silent-fail
-- F5 dead code: ⚠️ Service worker scope vs GitHub Pages base path(`/mid-autumn-prompt-builder/`) — review carefully
-
----
-
-### E. Teacher PIN upgrade + session timeout (v1.3.5)
-
-**What**: 因為 D Roster 涉及學生個私隱,加 PIN session timeout。
+**What**: 因為 C Roster 涉及學生個私隱,加 PIN session timeout + 強度選項。
 
 **How**:
-- 老師 mode 進去 → 30 分鐘 idle timeout → 自動退出
-- 老師 mode panel 加「PIN 強度」選項 (4-digit / 6-digit / alphanumeric)
+- 老師 mode 進去 → 30 分鐘 idle timeout → 自動退出(per SPEC-v1.2 §5 Q3 答咗「30 min」)
+- 老師 mode panel 加「PIN 強度」選項 (4-digit default / 6-digit / alphanumeric)
 - 加 「🔒 自動鎖定」 toggle,default ON
 
 **Surface**:
-- 老師 mode panel: 3 個 toggle (強度 / timeout / 自動鎖定)
-- Idle warning toast: 「5 分鐘後自動鎖定」(30s 前)
+- 老師 mode panel: 2 個 toggle (PIN 強度 / 自動鎖定)
+- Idle warning toast: 「5 分鐘後自動鎖定」(30s 前 grace)
 
 **Acceptance**:
 - 入老師 mode → 30 分鐘無動作 → 自動退出返 home
 - Idle 25 分鐘 → warn toast 顯示
-- 強度升級到 alphanumeric → 舊 PIN 強制 reset
+- 強度升級到 alphanumeric → 舊 PIN 強制 reset,新 PIN 設定 wizard
 
 **Bug Family Audit**:
 - F4 silent data loss: ⚠️ Auto-lock 唔 loss unsaved edits,先 toast warn + 30s grace
 - F1 default-state desync: ✅ Timeout default = 30min,鎖定 default = ON
+- F3 enable-condition: ✅ Auto-lock enable = 老師 mode active AND toggle ON
 
----
-
-### F. Field-test retrospective (v1.3.6 — TBD)
+### F. Field-test retrospective — ❌ NOT in v1.3 scope (independent commit if needed)
 
 **Source**: 7-day field test with SEN teacher + student。
 
-**Categories** to watch for:
-- **Cognitive load issues** (student confusion during 5-step flow)
-- **a11y issues** (screen reader / keyboard nav gap)
-- **Print issues** (worksheet layout when actually printed)
-- **Image-gen issues** (rate limit / quality / safety prompts hit)
-- **localStorage edge cases** (multi-device, quota hit, schema migration)
+**Status**: NOT a v1.3 sprint per user decision。如果 field test 揭發 critical bug(silent data loss / a11y regression / schema corruption),獨立 hotfix commit 入 v1.2.x maintenance,唔阻 v1.3 sprint cadence。
 
-**Output**: Use findings to ship **1 ad-hoc patch** between sprints or extend a sprint scope。
+**Watch categories** (same as §2 F original):
+- Cognitive load issues
+- a11y issues (screen reader / keyboard nav)
+- Print issues (worksheet layout when actually printed)
+- Image-gen issues (rate limit / quality)
+- localStorage edge cases (multi-device, quota, schema)
 
 ---
 
-## 3. Sprint Breakdown (DRAFT)
+## 3. Sprint Breakdown — FROZEN (4 sprints, A + B + C + E)
 
 ### Sprint v1.3.1 — Image-gen UX iteration (2-3 hr, 🟢)
 
-**Trigger**: v1.2 closeout + 7-day field test ≥50% complete (3.5 days)。
+**Trigger**: v1.2 closeout (`86c9141`+`8b0b393`) + 7-day field test ≥50% complete (3.5 days)。
 
 **Commits** (TBD per chosen features):
 1. `feat(image): localStorage cache by prompt hash + clear button`
@@ -246,10 +242,12 @@ v1.3 carries 2 個 deferred v1.2 features + 3 個 retrospective candidates from 
 
 ### Sprint v1.3.3 — Class Roster (7-10 hr, 🟡) — biggest risk
 
-**Trigger**: v1.3.2 ship + 7-day field data + user answers Q1 (auto-migrate) + Q3 (PIN upgrade)。
+**Trigger**: v1.3.2 ship + 7-day field data。
+
+**Migration strategy** (RESOLVED): auto-migrate + backup `midautumn_history_v12`。
 
 **Commits**:
-1. `chore(D): schema migration utility — backup midautumn_history to midautumn_history_v12`
+1. `chore(D): schema migration utility — backup midautumn_history to midautumn_history_v12 + auto-assign '(未命名)'`
 2. `feat(D): roster CRUD in teacher mode + localStorage schema`
 3. `feat(D): student-name dropdown populated from roster + free-text fallback`
 4. `feat(D): history filter by student + per-student export`
@@ -259,50 +257,39 @@ v1.3 carries 2 個 deferred v1.2 features + 3 個 retrospective candidates from 
 **Test gate**:
 - ✅ Roster add 11 個 → toast warn
 - ✅ Dropdown empty 時 fallback free-text input
-- ✅ Schema migration: 5 個舊 entry (no studentName) → all preserved + 顯示 「(未命名)」
+- ✅ Schema migration: 5 個舊 entry (no studentName) → all preserved + 顯示 「(未命名)」+ backup key 存在
 - ✅ LocalStorage quota < 5MB (20 students × 50 prompts)
 - ✅ axe-core: 0 violations
 
 **Risk**: 🟡 中 (schema migration can silent-fail if backup write fails)
 
-**Rollback**: Backup key (`midautumn_history_v12`) 永久保留 → 可以 restore。
+**Rollback**: Backup key (`midautumn_history_v12`) 永久保留 → 可以 restore via DevTools。
 
 ---
 
-### Sprint v1.3.4 — Service Worker offline-first (3-5 hr, 🟢)
+### Sprint v1.3.4 — Teacher PIN upgrade (1-2 hr, 🟢)
 
-**Trigger**: v1.3.3 ship + 7-day field data。
+**Trigger**: v1.3.3 ship + 7-day field data (或同 v1.3.3 一齊 ship,如果時間軸 OK)。
 
-**Commits**:
-1. `feat(offline): service-worker.js — stale-while-revalidate for HTML/CSS/JS`
-2. `feat(offline): cache-first for img/ with 30-day expiry`
-3. `feat(offline): online/offline status indicator`
-4. `fix(offline): update toast on new HTML version`
-5. `docs: README v1.3.4 changelog`
-
-**Test gate**:
-- ✅ Offline reload → HTML + 22 JPG from cache
-- ✅ New version push → user 收到 update toast
-- ✅ Service worker scope match GitHub Pages base path
-
-**Risk**: 🟢 (cache-first 已 well-tested pattern)
-
----
-
-### Sprint v1.3.5 — Teacher PIN upgrade (1-2 hr, 🟢)
-
-**Trigger**: v1.3.3 同時 ship (PIN upgrade 同 Roster 一齊做合理),否則 v1.3.4 後做。
+**Rationale**: C Roster 涉及學生私隱,PIN 升級一齊 ship 老師 user 唔使 await 過 session timeout warning。
 
 **Commits**:
-1. `feat(security): PIN strength options (4-digit / 6-digit / alphanumeric)`
-2. `feat(security): session timeout 30min + grace warning`
+1. `feat(security): PIN strength options (4-digit default / 6-digit / alphanumeric)`
+2. `feat(security): session timeout 30min + grace warning toast (30s before)`
 3. `feat(security): auto-lock toggle default ON`
-4. `docs: README v1.3.5 changelog`
+4. `docs: README v1.3.4 changelog`
 
 **Test gate**:
-- ✅ Idle 30min → 自動退出
-- ✅ Idle 25min → warn toast
-- ✅ 強度升級 → 舊 PIN reset
+- ✅ Idle 30min → 自動退出返 home
+- ✅ Idle 25min → warn toast 顯示
+- ✅ 強度升級到 alphanumeric → 舊 PIN reset + 新 PIN wizard
+
+---
+
+### ❌ Deferred (NOT in v1.3)
+
+- **D Service Worker offline-first** → v1.4 (見 §2 D)
+- **F Field-test retrospective patch** → independent hotfix if needed (見 §2 F)
 
 ---
 
@@ -310,62 +297,85 @@ v1.3 carries 2 個 deferred v1.2 features + 3 個 retrospective candidates from 
 
 | Family | Risk v1.3 | Mitigation |
 |---|---|---|
-| F1 default-state desync | 🟡 A, C, D, E | localStorage 記住 user 偏好;Schema migration default = old schema |
+| F1 default-state desync | 🟡 A, C, E | localStorage 記住 user 偏好;Schema migration default = old schema |
 | F2 reset-on-render | 🟡 C | Dropdown re-render 唔 crash — explicit re-render check |
-| F3 enable-condition off-by-concept | 🟢 B, D | Export enable = entries.length > 0;Service worker enable = HTTPS only |
-| F4 silent default data loss | 🔴 C, D | Schema migration backup + Service worker cache invalidation toast |
-| F5 dead code via name collision | 🟡 D | Service worker scope path vs GitHub Pages base path;Cache key vs prompt variable |
+| F3 enable-condition off-by-concept | 🟢 B, E | Export enable = entries.length > 0;Auto-lock enable = 老師 mode active AND toggle ON |
+| F4 silent default data loss | 🔴 C | Schema migration auto-backup to `midautumn_history_v12` BEFORE write-back (per Q2 RESOLVED) |
+| F5 dead code via name collision | 🟢 A, C | Cache key vs prompt variable (review);roster array vs history array naming (review) |
+
+**D Service Worker**: NOT in v1.3 scope → see v1.4 (F4 + F5 risk reduce when added)。
 
 ---
 
-## 5. Open Questions for User (要答先開 sprint 1+)
+## 5. Open Questions for User — FROZEN
 
-1. **v1.3 揀邊 3-4 sprints ship?** (見 §0 TL;DR)
-2. **D Roster migration strategy**: Auto-migrate all old history? (建議 yes + backup) **OR** prompt user per-entry?
-3. **D Roster 上限**: 10 students hard cap? **OR** warn-only (let user add 50 if they want)?
-4. **Service Worker scope**: Apply to whole `midautumn-prompt-builder/` path? **OR** separate paths per file?
-5. **Teacher PIN session timeout**: 30 min? **OR** configurable per session?
-6. **Sprint cadence keep 7 days?** Or compress after v1.3.1?
-7. **v1.3.6 (field-test retrospective)** ship as ad-hoc patch? Or fold into v1.3.1?
+**Resolved 2026-09-22** (per user questionnaire `ask_d7c2b8d9ddc6e49f14db21a1`):
+1. ✅ **v1.3 scope**: A + B + C + E (skip D + F)
+2. ✅ **C Roster migration**: Auto-migrate + backup `midautumn_history_v12`
+3. ⏸ **C Roster cap**: 10 students hard cap? — **DEFERRED to v1.3.3 sprint-time** (not blocking freeze, user can confirm during v1.3.3 spec)
+4. ⏸ **D Service Worker scope**: N/A — deferred to v1.4 (唔擋 v1.3 freeze)
+5. ✅ **Teacher PIN session timeout**: 30 min default (per SPEC-v1.2 §5 Q3 answer)
+6. ✅ **Sprint cadence**: keep 7-day field data per sprint
+7. ✅ **v1.3.6 (field-test retrospective)**: NOT in v1.3 scope, independent hotfix if needed
+
+**Open during sprint execution** (NOT blocking v1.3 freeze):
+- v1.3.1 (Image UX): 揀邊 1-2 個 image UX features 優先 (cache / seed / rate-limit / error states)
+- v1.3.2 (Export): TXT filename format + rich clipboard HTML structure
+- v1.3.3 (Roster): roster cap (10 hard vs warn-only), 學生名 validation rules
+
+**Previous open questions (superseded by freeze 2026-09-22):**
+1. ~~v1.3 揀邊 3-4 sprints ship?~~ → §0 TL;DR locked: A + B + C + E
+2. ~~D Roster migration strategy~~ → auto-migrate + backup `midautumn_history_v12`
+3. ~~D Roster 上限~~ → deferred to v1.3.3 sprint-time
+4. ~~Service Worker scope~~ → N/A (deferred to v1.4)
+5. ~~Teacher PIN session timeout~~ → 30 min default
+6. ~~Sprint cadence~~ → keep 7-day field data
+7. ~~v1.3.6 retrospective patch~~ → NOT in v1.3 scope (independent hotfix)
 
 ---
 
 ## 6. Reference Table — Feature × Property (memory rule 13 §X.5)
 
-| | A Image UX | B Export | C Roster | D Offline | E PIN |
-|---|---|---|---|---|---|
-| Touches localStorage | +1 key (cache) | 0 (read existing) | +1 key + schema change | +1 key (SW version) | 0 (existing PIN key) |
-| New UI element | 1 section + toggles | 3 buttons | 1 section + 1 dropdown | 1 status indicator | 3 toggles |
-| New file | 0 | 0 | 0 | `service-worker.js` | 0 |
-| New CSS class | 0 | 0 | 0 | 1 (.offline-banner) | 0 |
-| Bug families touched | F1, F4, F5 | F1, F3, F4 | F1, F2, F3, F4 | F1, F4, F5 | F1, F4 |
-| Dependency on others | 0 | History (existing) | B (recommended order) | 0 | C (privacy context) |
-| Rollback ease | Easy (toggle) | Easy (revert) | Hard (schema migration) | Medium (cache clear) | Easy (toggle) |
-| Test device | Desktop + iPad | Desktop + iPad | Desktop + iPad | Desktop offline mode | Desktop + iPad |
-| Estimated LoC | +120 | +120 | +180 | +100 | +60 |
-| **Status 2026-09-22** | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT |
+| | A Image UX | B Export | C Roster | E PIN |
+|---|---|---|---|---|
+| Touches localStorage | +1 key (cache) | 0 (read existing) | +1 key + schema change | 0 (existing PIN key) |
+| New UI element | 1 section + toggles | 3 buttons | 1 section + 1 dropdown | 2 toggles |
+| New file | 0 | 0 | 0 | 0 |
+| New CSS class | 0 | 0 | 0 | 0 |
+| Bug families touched | F1, F4, F5 | F1, F3, F4 | F1, F2, F3, F4 | F1, F3, F4 |
+| Dependency on others | 0 | History (existing) | B (recommended order) | C (privacy context) |
+| Rollback ease | Easy (toggle) | Easy (revert) | Hard (schema migration) | Easy (toggle) |
+| Test device | Desktop + iPad | Desktop + iPad | Desktop + iPad | Desktop + iPad |
+| Estimated LoC | +120 | +120 | +180 | +60 |
+| **Status 2026-09-22** | ✅ FROZEN v1.3.1 | ✅ FROZEN v1.3.2 | ✅ FROZEN v1.3.3 | (skipped) | ✅ FROZEN v1.3.4 |
 
-**Total LoC estimate (3 sprints avg)**: ~420 (從 1352 → ~1770). Single file integrity preserved if SW kept separate.
+**Deferred to v1.4+**:
+- **D Service Worker offline-first** — F1, F4, F5 (LoC +100, 1 new file `service-worker.js`)
+- **F Field-test retrospective patch** — ad-hoc hotfix if needed (LoC TBD)
+
+**Total LoC estimate (4 sprints v1.3)**: ~480 (從 1352 → ~1830). Single file integrity preserved (冇新 file, SW 留 v1.4).
 
 ---
 
-## 7. Acceptance Criteria (Sprint 1 Ready Check)
+## 7. Acceptance Criteria — FROZEN
 
 Ready to start sprint 1 (v1.3.1) when:
-- [x] ✅ v1.2 closed (`86c9141`)
-- [ ] ⏳ ≥7 day field test complete
-- [ ] ⏳ User confirms v1.3 scope (this doc)
-- [ ] ⏳ User answers §5 open questions (Q1, Q7 priority)
-- [x] ✅ Bug family audit done (F1/F4/F5 for A)
+- [x] ✅ v1.2 closed (`86c9141` + `8b0b393` push verified)
+- [ ] ⏳ ≥7 day field test complete (after v1.2 closeout)
+- [x] ✅ User confirms v1.3 scope (this doc) — **FROZEN 2026-09-22 per questionnaire**
+- [x] ✅ User answers §5 open questions — **Q1/Q2/Q5/Q6/Q7 RESOLVED**
+- [x] ✅ Bug family audit done (F1/F4/F5 for A, F1/F2/F3/F4 for C)
 
-**Trigger for sprint 2**: v1.3.1 ship + 7-day field data。
-**Trigger for sprint 3 (D Roster)**: v1.3.2 ship + user answers Q1/Q2/Q3 + 7-day field data。
+**Trigger for sprint 2 (v1.3.2 B Export)**: v1.3.1 ship + 7-day field data。
+**Trigger for sprint 3 (v1.3.3 C Roster)**: v1.3.2 ship + 7-day field data。
+**Trigger for sprint 4 (v1.3.4 E PIN)**: v1.3.3 ship + 7-day field data (or co-ship with v1.3.3 if field data allows)。
 
 ---
 
 ## 8. Change Log
 
 - **2026-09-22** v1.3 DRAFT opened。6 sprint candidates from v1.2 retrospective + field-test signals。Scope freeze after 7-day field test.
+- **2026-09-22** v1.3 **FROZEN** — scope locked to A + B + C + E (skip D + F). C Roster migration = auto-migrate + backup `midautumn_history_v12`. Cadence = keep 7-day field data per sprint. Per user questionnaire `ask_d7c2b8d9ddc6e49f14db21a1`.
 
 ---
 
@@ -383,4 +393,11 @@ Token cost: ~30s. Stop + surface + await user if any fail.
 
 ## 10. Next Action
 
-User 揀 v1.3 嘅 sprint priority (見 §5 Q1) + 答 §5 Q7 (cadence) → freeze scope → open Sprint v1.3.1 plan doc。
+**v1.3 FROZEN 2026-09-22**。Open Sprint v1.3.1 plan doc after:
+- ≥7 day field test from v1.2 closeout (2026-09-22)
+- Or user pre-approves sprint v1.3.1 plan without 7-day buffer (per §5 Q7)
+
+Sprint v1.3.1 plan doc will need:
+- Pick 1-2 image UX features (cache / seed / rate-limit / error states) per §5 open
+- LoC + commit plan per memory rule 4 worker discipline
+- Bug family re-audit (per memory rule 13 senior pass)
