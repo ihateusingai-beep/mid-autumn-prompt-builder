@@ -1,10 +1,13 @@
-# SPEC v1.4 — Art Prompt Builder (multi-holiday) [DRAFT]
+# SPEC v1.4 — Art Prompt Builder (multi-holiday) [FROZEN]
 
-> **Status**: 🟡 DRAFT 2026-09-22。Decisions locked per user questionnaire `ask_3fc8b6a7a0576ed388186eb0`:
+> **Status**: ✅ **FROZEN 2026-09-22**。Decisions locked per user questionnaires:
 >
-> 1. Repo rename: `mid-autumn-prompt-builder` → **`art-prompt-builder`** (per user Other field)
-> 2. Architecture: **1 mega file + theme switcher**
-> 3. First 4 holidays: **中秋 + 春節 + 聖誕 + 端午** (HK default)
+> 1. Repo rename: `mid-autumn-prompt-builder` → **`art-prompt-builder`** (per `ask_3fc8b6a7a0576ed388186eb0` Other field)
+> 2. Architecture: **1 mega file + theme switcher** (per `ask_3fc8b6a7a0576ed388186eb0`)
+> 3. First 4 holidays: **中秋 + 春節 + 聖誕 + 端午** (HK default, per `ask_3fc8b6a7a0576ed388186eb0`)
+> 4. v1.3 features migration timing: **(A) v1.4.1 mega 拎 v1.2.3 baseline + 拎返 v1.3 features** (per `ask_4e70c640acaea61f440d110f`)
+> 5. Dev branch strategy: **(a) Feature branch `v1.4-multi-holiday`**
+> 6. Old URL behavior: **Meta-refresh redirect** (preserve old URL → new URL)
 >
 > **Owner**: kencheng
 > **Repo (current)**: <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder>
@@ -13,6 +16,7 @@
 > **Live (after rename)**: <https://ihateusingai-beep.github.io/art-prompt-builder/>
 > **Previous**: [`SPEC-v1.3.md`](./SPEC-v1.3.md) (✅ FROZEN 2026-09-22 — 4 sprints in flight)
 > **Cadence**: 7-day field data per sprint (same as v1.3)
+> **Defaults for Q2-Q4** (Q2 brand wording / Q3 launcher sort / Q4 switcher position): see §5.
 
 ---
 
@@ -294,14 +298,31 @@ Same pattern, different theme data。
 
 ---
 
-## 5. Open Questions for User
+## 5. Open Questions for User — FROZEN
 
-1. **v1.3 features migration timing**: v1.4.1 migrate WITH v1.3 features (image UX / Export / Roster / PIN upgrade after they ship) OR ship v1.4.1 with v1.2.3 baseline + add v1.3 features later?
-2. **Brand wording** (中文): "節日畫畫提詞器" (current) OR "節日藝術創作工具" OR "Art Prompt Studio"?
-3. **Launcher default sort**: 按時間 (next upcoming holiday first) OR 按 user base (中秋 first)?
-4. **Theme switcher position**: Top-right corner icon row OR 「⚙️ 設定」 dropdown menu OR 「主題」 tab?
-5. **v1.4 dev branch**: work on `main` directly OR feature branch `v1.4-multi-holiday` and merge after?
-6. **Old URL behavior**: meta-refresh redirect (current plan) OR 410 Gone OR keep old `midautumn-prompt-builder.html` as separate legacy file?
+**Resolved 2026-09-22** (per user questionnaire `ask_4e70c640acaea61f440d110f`):
+1. ✅ **v1.3 features migration timing**: **(A) Mega 拎 1.2.3 baseline + 拎返 1.3 features** (wait for v1.3.4 ship)
+5. ✅ **Dev branch strategy**: **(a) Feature branch `v1.4-multi-holiday`**
+6. ✅ **Old URL behavior**: **Meta-refresh redirect** (preserve old URL → new URL)
+
+**Defaults applied 2026-09-22** (Q2/Q3/Q4 not blocking freeze):
+2. 📌 **Brand wording** (中文): 「節日畫畫提詞器」 (current — minimum disruption, rename SPEC title → 「節日提詞器」)
+3. 📌 **Launcher default sort**: 中秋 first (per current user base rationale, per §2 B)
+4. 📌 **Theme switcher position**: Top-right corner icon row (per §2 B)
+
+**Open during sprint execution** (NOT blocking v1.4 freeze):
+- v1.4.0 (Rename): `git tag v1.3-final` 命名約定
+- v1.4.1 (Launcher): Card icon 設計 (emoji vs SVG vs JPG thumbnail), 大細規格
+- v1.4.2-4 (Themes): Pollinations prompt templates 細節, 22 JPGs per holiday naming convention
+- v1.4.1-4: `selected_holiday` localStorage key migration if v1.3 had different naming
+
+**Previous open questions (superseded by freeze 2026-09-22):**
+1. ~~v1.3 features migration timing~~ → (A) mega + 拎 1.3 features
+2. ~~Brand wording~~ → default 「節日畫畫提詞器」
+3. ~~Launcher sort~~ → default 中秋 first
+4. ~~Theme switcher position~~ → default top-right corner
+6. ~~Old URL behavior~~ → meta-refresh redirect
+5. ~~Dev branch~~ → feature branch `v1.4-multi-holiday`
 
 ---
 
@@ -320,23 +341,23 @@ Same pattern, different theme data。
 | Rollback ease | Hard (URL break risk) | Easy (revert) | Medium (large refactor) | Easy (additive) | Easy | Easy |
 | Test device | Desktop + iPad | Desktop + iPad | Desktop + iPad | Desktop + iPad | Desktop + iPad | Desktop + iPad |
 | Estimated LoC | ~50 (redirect file + docs) | ~150 (launcher + theme switcher) | ~200 (migration scaffold) | ~300 (theme block) | ~300 | ~300 |
-| **Status 2026-09-22** | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT | 🟡 DRAFT |
+| **Status 2026-09-22** | ✅ FROZEN v1.4.0 | ✅ FROZEN v1.4.1 | ✅ FROZEN v1.4.1 | ✅ FROZEN v1.4.2 | ✅ FROZEN v1.4.3 | ✅ FROZEN v1.4.4 |
 
 **Total LoC estimate (5 sprints v1.4)**: ~1300 (從 1352 → ~2650). Single mega file integrity preserved with theme blocks。
 
 ---
 
-## 7. Acceptance Criteria — DRAFT
+## 7. Acceptance Criteria — FROZEN
 
 Ready to start sprint v1.4.0 when:
-- [ ] ⏳ v1.3.4 (E PIN upgrade) shipped to main
-- [ ] ⏳ ≥7 day field test complete after v1.3.4
-- [ ] ⏳ User confirms v1.4 freeze (this doc, all §5 open Q resolved)
-- [ ] ⏳ Pre-flight recon: confirm GitHub repo rename permissions + Pages access
-- [x] ✅ Bug family audit done (F1/F4/F5 for all themes)
+- [ ] ⏳ v1.3.4 (E PIN upgrade) shipped to main (待 v1.3 sprint 完成, 預計 2026-11-12)
+- [ ] ⏳ ≥7 day field test complete after v1.3.4 (預計 2026-11-19)
+- [x] ✅ User confirms v1.4 freeze (this doc, all §5 open Q resolved per questionnaire `ask_4e70c640acaea61f440d110f`)
+- [ ] ⏳ Pre-flight recon: confirm GitHub repo rename permissions + Pages access (per §9, run before v1.4.0 starts)
+- [x] ✅ Bug family audit done (F1/F4/F5 for all themes per §4)
 
-**Trigger for v1.4.1**: v1.4.0 ship + URL verify
-**Trigger for v1.4.2-4**: v1.4.1 ship + 7-day field data per sprint
+**Trigger for v1.4.1**: v1.4.0 ship + URL verify (meta-refresh redirect + new URL serving)
+**Trigger for v1.4.2-4**: v1.4.1 ship + 7-day field data per sprint (theme by theme)
 
 ---
 
@@ -344,6 +365,7 @@ Ready to start sprint v1.4.0 when:
 
 - **2026-09-22** v1.4 DRAFT opened。3 decisions locked: repo rename `art-prompt-builder`, 1 mega file + theme switcher, 4 holidays (中秋/春節/聖誕/端午)。6 sprint candidates v1.4.0-4。Per user questionnaire `ask_3fc8b6a7a0576ed388186eb0`。
 - **2026-09-22** SPEC-v1.3.md linkage updated (Next: SPEC-v1.4.md DRAFT).
+- **2026-09-22** v1.4 **FROZEN** — additional 3 decisions locked: (A) v1.4.1 拎 v1.3 features, (a) feature branch `v1.4-multi-holiday`, meta-refresh redirect for old URL. Defaults: 「節日畫畫提詞器」 brand / 中秋 first launcher / top-right theme switcher. Per user questionnaire `ask_4e70c640acaea61f440d110f`.
 
 ---
 
@@ -361,9 +383,19 @@ Token cost: ~30s. STOP + surface + await user if any fail.
 
 ## 10. Next Action
 
-User 答 §5 open questions (priority: Q1 migration timing + Q5 branch strategy + Q6 URL redirect) → freeze scope → open Sprint v1.4.0 plan doc after v1.3.4 ships + 7-day field test.
+v1.4 FROZEN 2026-09-22。Hard prerequisite: **v1.3 (4 sprints A+B+C+E) MUST ship before v1.4.0 starts**。Per user decision 2026-09-22 "(i) 繼續 ship v1.3 as-is"。
 
-**Hard prerequisite**: v1.3 (4 sprints A+B+C+E) MUST ship before v1.4.0 starts. Per user decision 2026-09-22 "(i) 繼續 ship v1.3 as-is"。
+**Pre-flight recon before v1.4.0** (per §9, run after v1.3.4 ship + 7-day field test):
+1. `gh repo view ihateusingai-beep/mid-autumn-prompt-builder --json name,viewerPermission` — verify rename permission
+2. `git tag v1.3-final` on current main BEFORE merge
+3. `git checkout -b v1.4-multi-holiday` (feature branch, per Q5 = (a))
+4. Confirm Pages access (Settings → Pages → source = GitHub Actions, branch = main)
+
+**Sprint v1.4.0 plan doc will need**:
+- Pre-flight recon completion (above 4 steps)
+- User final go-ahead for rename (per `git tag v1.3-final` backup safety net)
+- Meta-refresh redirect file content (51 lines similar to current `index.html`)
+- Pages re-config steps documentation
 
 **Timeline estimate** (v1.3 → v1.4):
 - v1.3.1 Image UX: ship ~2026-10-01 (after 7-day field test from 2026-09-22)
