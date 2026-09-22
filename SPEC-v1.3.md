@@ -5,6 +5,7 @@
 > **Repo**: <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder>
 > **Live**: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
 > **Previous**: [`SPEC-v1.2.md`](./SPEC-v1.2.md) (✅ COMPLETED 2026-09-22)
+> **Next**: [`SPEC-v1.4.md`](./SPEC-v1.4.md) (🟡 DRAFT — multi-holiday, repo rename `art-prompt-builder`, 1 mega file + theme switcher, 4 holidays: 中秋 + 春節 + 聖誕 + 端午)
 
 ---
 
