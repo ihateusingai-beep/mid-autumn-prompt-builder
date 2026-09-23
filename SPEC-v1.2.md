@@ -4,8 +4,8 @@
 >
 > **Status**: ✅ **COMPLETED 2026-09-22**。所有 frozen features 已 ship + field test 即可開 v1.3。
 > **Owner**: kencheng
-> **Repo**: <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder>
-> **Live**: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
+> **Repo (RENAMED 2026-09-23)**: <https://github.com/ihateusingai-beep/art-prompt-builder> (舊名 `mid-autumn-prompt-builder`)
+> **Live**: <https://ihateusingai-beep.github.io/art-prompt-builder/> (舊 URL `mid-autumn-prompt-builder/` 返 404，GitHub Pages 唔支援 rename auto-redirect)
 
 ---
 
@@ -387,7 +387,7 @@ Ready to start sprint 1 when:
 - 1352 行 / ~71KB single-file HTML integrity preserved
 - 0 axe-core a11y violations (memory rule 14 baseline)
 - 0 API secrets in localStorage / git (memory rule 1 verified)
-- Live URL: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
+- Live URL (post-rename 2026-09-23): <https://ihateusingai-beep.github.io/art-prompt-builder/>
 
 **Next**: 7-day field test → open [`SPEC-v1.3.md`](./SPEC-v1.3.md) sprint planning.
 

@@ -10,7 +10,9 @@
 
 **Status: ✅ Live since 2026-09-22**
 
-**👉 <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>**
+**👉 <https://ihateusingai-beep.github.io/art-prompt-builder/>**
+
+> ⚠️ **2026-09-23 改名**: Repo 由 `mid-autumn-prompt-builder` 改名做 `art-prompt-builder`(v1.4 準備 multi-holiday)。新 URL live, 舊 URL 返 404(GitHub Pages 唔支援 auto-redirect)。請 update bookmark / share link。
 
 每次 push `main` 自動 deploy(GitHub Actions `actions/deploy-pages@v4`)。`/` URL 經 `index.html` meta-refresh 跳去 `midautumn-prompt-builder.html`(保留 git history, 0ms redirect hop)。
 

@@ -10,10 +10,10 @@
 > 6. Old URL behavior: **Meta-refresh redirect** (preserve old URL → new URL)
 >
 > **Owner**: kencheng
-> **Repo (current)**: <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder>
-> **Repo (after rename)**: <https://github.com/ihateusingai-beep/art-prompt-builder>
-> **Live (current)**: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
-> **Live (after rename)**: <https://ihateusingai-beep.github.io/art-prompt-builder/>
+> **Repo (PRE-rename 2026-09-23)**: `mid-autumn-prompt-builder` (now RENAMED)
+> **Repo (post-rename)**: <https://github.com/ihateusingai-beep/art-prompt-builder> ✅ LIVE
+> **Live (post-rename)**: <https://ihateusingai-beep.github.io/art-prompt-builder/> ✅ HTTP 200
+> **Live (old URL)**: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/> ❌ HTTP 404 (GitHub Pages 唔支援 rename auto-redirect, 90-day lock 阻舊名 reuse)
 > **Previous**: [`SPEC-v1.3.md`](./SPEC-v1.3.md) (✅ FROZEN 2026-09-22 — 4 sprints in flight)
 > **Cadence**: 7-day field data per sprint (same as v1.3)
 > **Defaults for Q2-Q4** (Q2 brand wording / Q3 launcher sort / Q4 switcher position): see §5.
@@ -366,6 +366,7 @@ Ready to start sprint v1.4.0 when:
 - **2026-09-22** v1.4 DRAFT opened。3 decisions locked: repo rename `art-prompt-builder`, 1 mega file + theme switcher, 4 holidays (中秋/春節/聖誕/端午)。6 sprint candidates v1.4.0-4。Per user questionnaire `ask_3fc8b6a7a0576ed388186eb0`。
 - **2026-09-22** SPEC-v1.3.md linkage updated (Next: SPEC-v1.4.md DRAFT).
 - **2026-09-22** v1.4 **FROZEN** — additional 3 decisions locked: (A) v1.4.1 拎 v1.3 features, (a) feature branch `v1.4-multi-holiday`, meta-refresh redirect for old URL. Defaults: 「節日畫畫提詞器」 brand / 中秋 first launcher / top-right theme switcher. Per user questionnaire `ask_4e70c640acaea61f440d110f`.
+- **2026-09-23** Sprint v1.4.0 EXECUTED — repo rename `mid-autumn-prompt-builder` → `art-prompt-builder` ✅ done via `gh repo rename`. New URL live (HTTP 200, 1 min Pages re-provisioning). Old URL returns 404 (GitHub Pages 唔支援 auto-redirect + 90-day lock 阻舊名 reuse; user 可手動通知 bookmark update)。`git tag v1.3-final` + `v1.4-multi-holiday` branch created。Sprint v1.4.0 status: COMPLETE。
 
 ---
 

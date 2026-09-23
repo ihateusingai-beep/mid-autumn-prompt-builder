@@ -2,8 +2,8 @@
 
 > **Status**: ✅ **FROZEN 2026-09-22**。Scope locked: **A + B + C + E**(4 sprints)。Skip D (offline-first) + F (field-test retrospective patch)。Cadence 7-day field data per sprint。
 > **Owner**: kencheng
-> **Repo**: <https://github.com/ihateusingai-beep/mid-autumn-prompt-builder>
-> **Live**: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
+> **Repo (RENAMED 2026-09-23)**: <https://github.com/ihateusingai-beep/art-prompt-builder> (舊名 `mid-autumn-prompt-builder`)
+> **Live**: <https://ihateusingai-beep.github.io/art-prompt-builder/> (舊 URL `mid-autumn-prompt-builder/` 返 404)
 > **Previous**: [`SPEC-v1.2.md`](./SPEC-v1.2.md) (✅ COMPLETED 2026-09-22)
 > **Next**: [`SPEC-v1.4.md`](./SPEC-v1.4.md) (🟡 DRAFT — multi-holiday, repo rename `art-prompt-builder`, 1 mega file + theme switcher, 4 holidays: 中秋 + 春節 + 聖誕 + 端午)
 
@@ -35,7 +35,7 @@ v1.3 scope = 4 sprints frozen from 6 candidates。每 sprint ≥7 日 field data
 
 - 11 commits on `main`(2026-09-21 → 2026-09-22)
 - 1352 行 / ~71KB single-file HTML
-- Live URL: <https://ihateusingai-beep.github.io/mid-autumn-prompt-builder/>
+- Live URL (post-rename 2026-09-23): <https://ihateusingai-beep.github.io/art-prompt-builder/>
 - 0 axe-core a11y violations
 - 0 secrets in localStorage / git
 - 5 features shipped (A / C / E + UX patch)
